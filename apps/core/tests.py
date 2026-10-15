@@ -32,6 +32,7 @@ class CorePagesTestCase(TestCase):
             "bodyguard",
             "quest",
             "cleaner",
+            "help-request",
             "about",
         ]
         for name in pages:
@@ -63,6 +64,7 @@ class CorePagesTestCase(TestCase):
             "bodyguard",
             "quest",
             "cleaner",
+            "help-request",
             "about",
         ]
         for name in pages:
@@ -88,3 +90,95 @@ class CorePagesTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.cookies["stalking_lang"].value, "ru")
         self.assertIn("/ru/risk/", response.url)
+
+
+class HelpRequestTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_help_request_disabled_when_no_email(self):
+        with self.settings(HELP_REQUEST_EMAIL=""):
+            response = self.client.get("/kk/help-request/")
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "қолжетімсіз")
+
+            # POST should be rejected safely
+            post_resp = self.client.post("/kk/help-request/", {"message": "Маған көмек керек"})
+            self.assertEqual(post_resp.status_code, 403)
+
+    def test_help_request_get_when_enabled(self):
+        with self.settings(HELP_REQUEST_EMAIL="specialist@example.com"):
+            response = self.client.get("/kk/help-request/")
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "Қауіпсіз жіберу")
+            # Recipient email must NEVER leak to response HTML
+            self.assertNotContains(response, "specialist@example.com")
+
+    def test_help_request_post_validation(self):
+        with self.settings(HELP_REQUEST_EMAIL="specialist@example.com"):
+            # Empty message
+            resp = self.client.post("/kk/help-request/", {"message": ""})
+            self.assertEqual(resp.status_code, 400)
+            self.assertContains(resp, "міндетті", status_code=400)
+
+            # Too short message
+            resp_short = self.client.post("/kk/help-request/", {"message": "қысқа"})
+            self.assertEqual(resp_short.status_code, 400)
+            self.assertContains(resp_short, "қысқа", status_code=400)
+
+    def test_help_request_honeypot(self):
+        from django.core import mail
+        mail.outbox = []
+        with self.settings(HELP_REQUEST_EMAIL="specialist@example.com"):
+            resp = self.client.post(
+                "/kk/help-request/",
+                {
+                    "message": "Бұл спам бот жазған хабарлама",
+                    "website_url_check": "https://spam.com",
+                },
+            )
+            self.assertEqual(resp.status_code, 200)
+            # No email should be sent
+            self.assertEqual(len(mail.outbox), 0)
+
+    def test_help_request_success_email_dispatch(self):
+        import io
+        from django.core import mail
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        mail.outbox = []
+
+        # Create a small valid test JPEG image in memory
+        img_io = io.BytesIO()
+        test_img = Image.new("RGB", (50, 50), color="blue")
+        test_img.save(img_io, format="JPEG")
+        img_bytes = img_io.getvalue()
+        uploaded = SimpleUploadedFile("my_photo.jpg", img_bytes, content_type="image/jpeg")
+
+        with self.settings(HELP_REQUEST_EMAIL="specialist@example.com"):
+            resp = self.client.post(
+                "/kk/help-request/",
+                {
+                    "message": "Маған қудалау бойынша жедел кеңес қажет, көмектесіңізші.",
+                    "contact": "safe-contact@example.kz",
+                    "attachment": uploaded,
+                },
+            )
+            self.assertEqual(resp.status_code, 200)
+            self.assertContains(resp, "Өтініш сәтті жіберілді")
+
+            # Verify email was dispatched
+            self.assertEqual(len(mail.outbox), 1)
+            msg = mail.outbox[0]
+            self.assertEqual(msg.to, ["specialist@example.com"])
+            self.assertEqual(msg.reply_to, ["safe-contact@example.kz"])
+            self.assertIn("Маған қудалау бойынша", msg.body)
+            self.assertIn("safe-contact@example.kz", msg.body)
+            self.assertEqual(len(msg.attachments), 1)
+            att_filename, att_content, att_mime = msg.attachments[0]
+            self.assertTrue(att_filename.startswith("evidence_"))
+            self.assertEqual(att_mime, "image/jpg")
+
+            # Check that response HTML NEVER exposes the recipient email
+            self.assertNotContains(resp, "specialist@example.com")

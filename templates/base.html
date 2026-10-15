@@ -9,6 +9,7 @@
   <meta name="referrer" content="same-origin">
   <title>{{ t.site_title }}</title>
   <meta name="description" content="{{ t.tagline }}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
   <link rel="stylesheet" href="{% static 'css/main.css' %}?v=8.0">
   <script>
     (function () {
@@ -30,7 +31,9 @@
   <header class="site-header" role="banner">
     <div class="header-bar">
       <a class="brand" href="/{{ lang }}/" aria-label="{{ t.brand }}">
-        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-mark" aria-hidden="true">
+          <img src="{% static 'img/logo.svg' %}" alt="" width="32" height="32" class="brand-logo-img">
+        </span>
         <span class="brand-text">{{ t.brand }}</span>
       </a>
 
@@ -75,6 +78,7 @@
     <nav id="site-nav" class="site-nav" aria-label="{{ t.brand }}">
       <a href="/{{ lang }}/" {% if active == 'home' %}aria-current="page"{% endif %}>{{ t.nav_home }}</a>
       <a href="/{{ lang }}/urgent/" {% if active == 'urgent' %}aria-current="page"{% endif %}>{{ t.nav_urgent }}</a>
+      <a href="/{{ lang }}/help-request/" {% if active == 'help_request' %}aria-current="page"{% endif %}>{{ t.nav_help_request }}</a>
       <a href="/{{ lang }}/risk/" {% if active == 'risk' %}aria-current="page"{% endif %}>{{ t.nav_risk }}</a>
       <a href="/{{ lang }}/plan/" {% if active == 'plan' %}aria-current="page"{% endif %}>{{ t.nav_plan }}</a>
       <a href="/{{ lang }}/evidence/" {% if active == 'evidence' %}aria-current="page"{% endif %}>{{ t.nav_evidence }}</a>

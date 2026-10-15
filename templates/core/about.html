@@ -1,17 +1,81 @@
 {% extends "base.html" %}
-{% block content %}
-<article class="page">
-  <h1>{{ t.about_title }}</h1>
-  <p class="lead">{{ t.about_body }}</p>
+{% load static %}
 
-  <div class="about-body">
-    <p>{{ t.footer_disclaimer }}</p>
-    <p>{{ t.footer_privacy }}</p>
-    <p>{{ t.footer_verified }}</p>
-    <ul>
-      <li>{{ t.quick_exit_hint }}</li>
-      <li>{{ t.risk_intro }}</li>
-    </ul>
+{% block content %}
+<div class="container py-4">
+  <div class="page-header text-center mb-5">
+    <div class="mb-3 d-inline-block">
+      <img src="{% static 'img/logo.svg' %}" alt="Stalking-AI" width="64" height="64" style="filter: drop-shadow(0 4px 12px rgba(56, 189, 248, 0.35));">
+    </div>
+    <h1 class="page-title">{{ t.about_title }}</h1>
+    <p class="page-subtitle max-w-2xl mx-auto">{{ t.about_body }}</p>
   </div>
-</article>
+
+  <!-- Автор туралы арнайы карта -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+      <div class="author-card">
+        <div class="author-header">
+          <div class="author-avatar" aria-hidden="true">👩‍💻</div>
+          <div>
+            <span class="badge badge-accent mb-1">{{ t.about_author_label }}</span>
+            <h2 class="author-name">{{ t.about_author_name }}</h2>
+          </div>
+        </div>
+        <p class="author-desc">
+          {{ t.about_author_desc }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Миссиясы мен мақсаты -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+      <h2 class="h4 mb-3 d-flex align-items-center gap-2">
+        <span aria-hidden="true">🎯</span> {{ t.about_mission_title }}
+      </h2>
+      <p class="lead-text mb-4" style="line-height: 1.7; color: var(--ink);">
+        {{ t.about_mission_text }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Негізгі қағидалар -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+      <h2 class="h4 mb-4 d-flex align-items-center gap-2">
+        <span aria-hidden="true">⚖️</span> {{ t.about_principles_title }}
+      </h2>
+      <div class="d-flex flex-column gap-3">
+        <div class="about-principle-card">
+          <p class="mb-0">{{ t.about_principle_1 }}</p>
+        </div>
+        <div class="about-principle-card">
+          <p class="mb-0">{{ t.about_principle_2 }}</p>
+        </div>
+        <div class="about-principle-card">
+          <p class="mb-0">{{ t.about_principle_3 }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ресми жауапкершілік шектеуі (Disclaimer) -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="alert alert-secondary p-4 small" style="background: var(--surface-3, rgba(0,0,0,0.05)); border: none;">
+        <h3 class="h6 fw-bold mb-2">{% if lang == 'kk' %}📌 Құқықтық ескертпе:{% else %}📌 Правовое примечание:{% endif %}</h3>
+        <p class="mb-2">{{ t.footer_disclaimer }}</p>
+        <p class="mb-2">{{ t.footer_privacy }}</p>
+        <p class="mb-0">{{ t.footer_verified }}</p>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="/{{ lang }}/" class="btn btn-outline-secondary me-2">← {{ t.nav_home }}</a>
+        <a href="/{{ lang }}/help-request/" class="btn btn-primary">✉️ {{ t.nav_help_request }}</a>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -56,5 +56,6 @@
 </article>
 {% endblock %}
 {% block scripts %}
-<script src="/static/js/risk.js?v=3.1" defer></script>
+{% load static %}
+<script src="{% static 'js/risk.js' %}" defer></script>
 {% endblock %}

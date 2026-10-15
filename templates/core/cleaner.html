@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <article class="page cleaner-page" id="cleaner-app"
   data-lang="{{ lang }}"
@@ -256,5 +257,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/cleaner.js?v=1.0" defer></script>
+<script src="{% static 'js/cleaner.js' %}?v=1.0" defer></script>
 {% endblock %}

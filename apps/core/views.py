@@ -1,7 +1,17 @@
+import io
+import logging
+import re
+import time
+import uuid
+
+from django.conf import settings
+from django.core.mail import EmailMessage
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from PIL import Image
 
 from apps.catalog.models import LegalResource, Region, SupportService
 from apps.core.digital_content import GUIDES
@@ -241,6 +251,278 @@ def cleaner(request, lang=None):
     return render(
         request, "core/cleaner.html", _ctx(request, active="cleaner")
     )
+
+
+@require_http_methods(["GET", "POST"])
+def help_request(request, lang=None):
+    from apps.core.i18n import t as tr
+
+    lang_code = _lang(request)
+    recipient_email = getattr(settings, "HELP_REQUEST_EMAIL", "").strip()
+    is_enabled = bool(recipient_email)
+
+    if request.method == "GET":
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=is_enabled,
+                lang_code=lang_code,
+            ),
+        )
+
+    # POST processing
+    if not is_enabled:
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=False,
+                error_msg=tr("help_disabled_title", lang_code),
+                lang_code=lang_code,
+            ),
+            status=403,
+        )
+
+    # 1. Anti-spam honeypot check (hidden input 'website_url_check')
+    honeypot = request.POST.get("website_url_check", "").strip()
+    if honeypot:
+        # Silently pretend success so automated bots do not adapt
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                success=True,
+                lang_code=lang_code,
+            ),
+        )
+
+    # 2. Rate limiting (in-session timestamps)
+    rate_limit = getattr(settings, "HELP_REQUEST_RATE_LIMIT", 5)
+    now = time.time()
+    history = request.session.get("help_requests_sent", [])
+    recent = [ts for ts in history if now - ts < 3600]
+    if len(recent) >= rate_limit:
+        error_msg = (
+            "Тым көп сұрау жіберілді. Біраз уақыттан соң қайталап көріңіз."
+            if lang_code == "kk"
+            else "Слишком много запросов. Попробуйте позже."
+        )
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                error_msg=error_msg,
+                lang_code=lang_code,
+            ),
+            status=429,
+        )
+
+    # 3. Message validation (mandatory)
+    message = request.POST.get("message", "").strip()
+    if not message:
+        error_msg = (
+            "Хабарлама мәтіні міндетті."
+            if lang_code == "kk"
+            else "Текст сообщения обязателен."
+        )
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                error_msg=error_msg,
+                lang_code=lang_code,
+            ),
+            status=400,
+        )
+    if len(message) < 10:
+        error_msg = (
+            "Хабарлама тым қысқа (кемінде 10 таңба болуы қажет)."
+            if lang_code == "kk"
+            else "Сообщение слишком короткое (не менее 10 символов)."
+        )
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                error_msg=error_msg,
+                lang_code=lang_code,
+            ),
+            status=400,
+        )
+    if len(message) > 5000:
+        error_msg = (
+            "Хабарлама тым ұзын (ең көбі 5000 таңба)."
+            if lang_code == "kk"
+            else "Сообщение слишком длинное (максимум 5000 символов)."
+        )
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                error_msg=error_msg,
+                lang_code=lang_code,
+            ),
+            status=400,
+        )
+
+    # 4. Optional contact info (sanitized, truncated to 150 chars)
+    contact = request.POST.get("contact", "").strip()[:150]
+
+    # 5. Attachment handling (optional, with Pillow validation & EXIF stripping)
+    clean_attachment = None
+    clean_filename = None
+    clean_mime = None
+    uploaded_file = request.FILES.get("attachment")
+    if uploaded_file:
+        if uploaded_file.size > 5 * 1024 * 1024:
+            error_msg = (
+                "Тіркелген файл 5 МБ-тан аспауы тиіс."
+                if lang_code == "kk"
+                else "Прикреплённый файл не должен превышать 5 МБ."
+            )
+            return render(
+                request,
+                "core/help_request.html",
+                _ctx(
+                    request,
+                    active="help_request",
+                    is_enabled=True,
+                    error_msg=error_msg,
+                    lang_code=lang_code,
+                ),
+                status=400,
+            )
+
+        raw_bytes = uploaded_file.read()
+        try:
+            Image.MAX_IMAGE_PIXELS = 10_000_000
+            probe_img = Image.open(io.BytesIO(raw_bytes))
+            probe_img.verify()
+
+            img = Image.open(io.BytesIO(raw_bytes))
+            raw_format = (img.format or "").upper()
+            if raw_format not in {"JPEG", "PNG", "WEBP"}:
+                raise ValueError("Unsupported format")
+
+            clean_io = io.BytesIO()
+            save_format = "JPEG" if raw_format == "JPEG" else ("PNG" if raw_format == "PNG" else "WEBP")
+            if save_format == "JPEG" and img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            # Save clean image without any EXIF/GPS metadata
+            img.save(clean_io, format=save_format, quality=90)
+            clean_attachment = clean_io.getvalue()
+            clean_ext = "jpg" if save_format == "JPEG" else save_format.lower()
+            clean_filename = f"evidence_{uuid.uuid4().hex[:8]}.{clean_ext}"
+            clean_mime = f"image/{clean_ext}"
+        except Exception:
+            error_msg = (
+                "Тек жарамды сурет файлдары (JPEG, PNG, WEBP) қабылданады."
+                if lang_code == "kk"
+                else "Принимаются только корректные изображения (JPEG, PNG, WEBP)."
+            )
+            return render(
+                request,
+                "core/help_request.html",
+                _ctx(
+                    request,
+                    active="help_request",
+                    is_enabled=True,
+                    error_msg=error_msg,
+                    lang_code=lang_code,
+                ),
+                status=400,
+            )
+
+    # 6. Compose and send plain text email
+    subject = "[Stalking-AI] Жаңа анонимді көмек сұрауы / Новое обращение"
+    email_body = (
+        "Stalking-AI платформасынан жаңа көмек сұрауы келіп түсті.\n"
+        "==========================================================\n\n"
+        f"Уақыты (UTC): {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"Кері байланыс дерегі: {contact if contact else '(Көрсетілмеген / Толық анонимді)'}\n\n"
+        "--- ХАБАРЛАМА МӘТІНІ ---\n"
+        f"{message}\n"
+        "------------------------\n\n"
+        f"Тіркелген сурет: {'Бар (метадеректер тазартылған)' if clean_attachment else 'Жоқ'}\n\n"
+        "Қауіпсіздік ескертпесі:\n"
+        "Бұл хат пайдаланушы өтініші бойынша тікелей жіберілді.\n"
+        "Дерекқорда немесе жүйелік логтарда оның көшірмесі сақталмады (Zero-Persistence)."
+    )
+
+    try:
+        reply_to_list = None
+        if contact and "@" in contact:
+            match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", contact)
+            if match:
+                reply_to_list = [match.group(0)]
+
+        email = EmailMessage(
+            subject=subject,
+            body=email_body,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "Stalking-AI <noreply@stalking-ai.org>"),
+            to=[recipient_email],
+            reply_to=reply_to_list,
+        )
+        if clean_attachment and clean_filename and clean_mime:
+            email.attach(clean_filename, clean_attachment, clean_mime)
+
+        email.send(fail_silently=False)
+
+        recent.append(now)
+        request.session["help_requests_sent"] = recent
+
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                success=True,
+                lang_code=lang_code,
+            ),
+        )
+    except Exception as e:
+        logger = logging.getLogger("apps.core")
+        logger.error("Help request email dispatch failed: %s", type(e).__name__)
+        error_msg = (
+            "Хатты жеткізу кезінде техникалық қате орын алды. Өтінішіңізді ресми байланыс нөмірлері арқылы жеткізуіңізді сұраймыз."
+            if lang_code == "kk"
+            else "Произошла техническая ошибка при отправке. Пожалуйста, воспользуйтесь официальными номерами помощи."
+        )
+        return render(
+            request,
+            "core/help_request.html",
+            _ctx(
+                request,
+                active="help_request",
+                is_enabled=True,
+                error_msg=error_msg,
+                lang_code=lang_code,
+            ),
+            status=500,
+        )
 
 
 @require_GET

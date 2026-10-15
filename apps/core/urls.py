@@ -16,5 +16,6 @@ urlpatterns = [
     path("bodyguard/", views.bodyguard, name="bodyguard"),
     path("quest/", views.quest, name="quest"),
     path("cleaner/", views.cleaner, name="cleaner"),
+    path("help-request/", views.help_request, name="help_request"),
     path("about/", views.about, name="about"),
 ]

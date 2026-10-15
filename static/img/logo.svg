@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Shield Gradient -->
+    <linearGradient id="shieldBg" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <!-- Border Accent Gradient -->
+    <linearGradient id="shieldBorder" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <!-- Core Glow Gradient -->
+    <linearGradient id="coreGlow" x1="16" y1="14" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <!-- Inner Keyhole/Beacon Glow -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Shield Crest -->
+  <path d="M24 4 C34 4 41 7 42 16 C42 28 33 39 24 44 C15 39 6 28 6 16 C7 7 14 4 24 4 Z" 
+        fill="url(#shieldBg)" 
+        stroke="url(#shieldBorder)" 
+        stroke-width="2" 
+        stroke-linejoin="round"/>
+
+  <!-- Inner Protective Layer -->
+  <path d="M24 8 C32 8 37 10.5 38 17.5 C38 26.5 30.5 35.5 24 39.5 C17.5 35.5 10 26.5 10 17.5 C11 10.5 16 8 24 8 Z" 
+        fill="rgba(56, 189, 248, 0.06)" 
+        stroke="rgba(255, 255, 255, 0.12)" 
+        stroke-width="1"/>
+
+  <!-- Stylized Protection Lock & Beacon Core -->
+  <!-- Lock Shackle -->
+  <path d="M19 21 V18 C19 15.24 21.24 13 24 13 C26.76 13 29 15.24 29 18 V21" 
+        stroke="url(#coreGlow)" 
+        stroke-width="2.5" 
+        stroke-linecap="round" 
+        filter="url(#softGlow)"/>
+
+  <!-- Lock Body / Guardian Emblem -->
+  <rect x="17" y="21" width="14" height="11" rx="3" 
+        fill="url(#coreGlow)" 
+        filter="url(#softGlow)"/>
+
+  <!-- Keyhole / Center Beacon of Safety -->
+  <circle cx="24" cy="25" r="1.6" fill="#0f172a"/>
+  <path d="M23.2 25.5 L24.8 25.5 L25.2 29 L22.8 29 Z" fill="#0f172a"/>
+
+  <!-- Spark of Guidance (top right beacon star) -->
+  <path d="M35 11 L35.8 13 L38 13.8 L35.8 14.6 L35 16.8 L34.2 14.6 L32 13.8 L34.2 13 Z" 
+        fill="#38bdf8" 
+        opacity="0.9"/>
+</svg>

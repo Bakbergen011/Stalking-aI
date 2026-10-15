@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header text-center mb-4">
+    <span class="badge badge-accent mb-2">✉️ {{ t.nav_help_request }}</span>
+    <h1 class="page-title">{{ t.help_title }}</h1>
+    <p class="page-subtitle max-w-2xl mx-auto">{{ t.help_intro }}</p>
+  </div>
+
+  <!-- Шұғыл қауіп ескертуі (Жедел қызмет емес) -->
+  <div class="alert alert-danger mb-4" role="alert">
+    <div class="d-flex align-items-start gap-3">
+      <span class="alert-icon" style="font-size: 1.5rem;" aria-hidden="true">🚨</span>
+      <div>
+        <strong class="d-block mb-1">{{ t.help_urgent_banner }}</strong>
+        <div class="mt-2">
+          <a href="/{{ lang }}/urgent/" class="btn btn-sm btn-outline-danger me-2">📞 {{ t.nav_urgent }}</a>
+          <a href="tel:102" class="btn btn-sm btn-danger me-1">102 (Полиция)</a>
+          <a href="tel:112" class="btn btn-sm btn-danger me-1">112 (Құтқару)</a>
+          <a href="tel:111" class="btn btn-sm btn-danger me-1">111 (Сенім)</a>
+          <a href="tel:150" class="btn btn-sm btn-danger">150 (Ұлттық желі)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Анонимділік және техникалық шектеулер туралы ашық ескерту -->
+  <div class="card mb-4 border-warning-subtle" style="background: var(--surface-2, rgba(255,255,255,0.03));">
+    <div class="card-body">
+      <h2 class="h5 d-flex align-items-center gap-2 mb-2 text-warning">
+        <span aria-hidden="true">🛡️</span> {{ t.help_anonymity_title }}
+      </h2>
+      <p class="text-muted small mb-0">{{ t.help_anonymity_text }}</p>
+    </div>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      {% if success %}
+        <!-- Сәтті жіберілген күй -->
+        <div class="card border-success text-center py-5 px-4 shadow-sm">
+          <div class="card-body">
+            <div class="success-icon mb-3" style="font-size: 3rem;" aria-hidden="true">✅</div>
+            <h2 class="h3 text-success mb-2">{{ t.help_success_title }}</h2>
+            <p class="text-muted mb-4 max-w-lg mx-auto">{{ t.help_success_desc }}</p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+              <a href="/{{ lang }}/help-request/" class="btn btn-primary">{{ t.help_send_another }}</a>
+              <a href="/{{ lang }}/" class="btn btn-outline-secondary">{{ t.nav_home }}</a>
+              <a href="/{{ lang }}/cover/" class="btn btn-danger">{{ t.quick_exit }}</a>
+            </div>
+          </div>
+        </div>
+
+      {% elif not is_enabled %}
+        <!-- Маман email бапталмаған жағдайдағы қауіпсіз хабарлама -->
+        <div class="card border-secondary text-center py-5 px-4 shadow-sm">
+          <div class="card-body">
+            <div class="mb-3" style="font-size: 2.5rem;" aria-hidden="true">ℹ️</div>
+            <h2 class="h4 mb-2">{{ t.help_disabled_title }}</h2>
+            <p class="text-muted mb-4 max-w-lg mx-auto">{{ t.help_disabled_desc }}</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+              <a href="tel:111" class="btn btn-primary">📞 111 — Сенім желісі</a>
+              <a href="tel:150" class="btn btn-outline-primary">📞 150 — Қолдау орталығы</a>
+              <a href="/{{ lang }}/resources/" class="btn btn-outline-secondary">🏢 {{ t.nav_resources }}</a>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <!-- Негізгі өтініш беру формасы -->
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4 p-md-5">
+            {% if error_msg %}
+              <div class="alert alert-danger mb-4" role="alert">
+                {{ error_msg }}
+              </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+              {% csrf_token %}
+
+              <!-- Анти-спам Honeypot (пайдаланушыға көрінбейді) -->
+              <div style="display:none !important;" aria-hidden="true">
+                <label for="id_website_url_check">Do not fill this field</label>
+                <input type="text" id="id_website_url_check" name="website_url_check" tabindex="-1" autocomplete="off">
+              </div>
+
+              <!-- Хабарлама мәтіні (Міндетті) -->
+              <div class="mb-4">
+                <label for="id_message" class="form-label fw-bold">
+                  {{ t.help_message_label }} <span class="text-danger">*</span>
+                </label>
+                <textarea
+                  id="id_message"
+                  name="message"
+                  rows="6"
+                  class="form-control"
+                  placeholder="{{ t.help_message_placeholder }}"
+                  required
+                  minlength="10"
+                  maxlength="5000"
+                  aria-describedby="msgHelp"
+                ></textarea>
+                <div id="msgHelp" class="form-text small text-muted">
+                  {{ t.help_message_help }}
+                </div>
+              </div>
+
+              <!-- Байланыс деректері (Ерікті) -->
+              <div class="mb-4">
+                <label for="id_contact" class="form-label fw-bold">
+                  {{ t.help_contact_label }}
+                </label>
+                <input
+                  type="text"
+                  id="id_contact"
+                  name="contact"
+                  class="form-control"
+                  placeholder="{{ t.help_contact_placeholder }}"
+                  maxlength="150"
+                  aria-describedby="contactHelp"
+                >
+                <div id="contactHelp" class="form-text small text-muted">
+                  {{ t.help_contact_help }}
+                </div>
+              </div>
+
+              <!-- Сурет тіркеу (Ерікті) -->
+              <div class="mb-4">
+                <label for="id_attachment" class="form-label fw-bold">
+                  {{ t.help_attachment_label }}
+                </label>
+                <input
+                  type="file"
+                  id="id_attachment"
+                  name="attachment"
+                  class="form-control"
+                  accept="image/jpeg,image/png,image/webp"
+                  aria-describedby="fileHelp"
+                >
+                <div id="fileHelp" class="form-text small text-muted">
+                  {{ t.help_attachment_help }}
+                </div>
+              </div>
+
+              <!-- Қауіпсіздік және деректерді сақтамау туралы ескертпе -->
+              <div class="alert alert-secondary mb-4 p-3 small" style="background: var(--surface-3, rgba(0,0,0,0.05)); border: none;">
+                {{ t.help_zero_persistence_note }}
+              </div>
+
+              <!-- Батырмалар -->
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                  🔒 {{ t.help_submit_btn }}
+                </button>
+                <a href="/{{ lang }}/cover/" class="btn btn-outline-danger">
+                  {{ t.quick_exit }}
+                </a>
+              </div>
+            </form>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

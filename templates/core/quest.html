@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
 <article class="page quest-page" id="quest-app"
   data-lang="{{ lang }}"
@@ -130,5 +131,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/quest.js?v=1.0" defer></script>
+<script src="{% static 'js/quest.js' %}?v=1.0" defer></script>
 {% endblock %}

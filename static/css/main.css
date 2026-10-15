@@ -112,11 +112,6 @@ html.dark body,
     linear-gradient(175deg, hsl(222, 47%, 11%) 0%, hsl(224, 50%, 8%) 100%) !important;
 }
 
-html.dark .brand-mark,
-[data-theme="dark"] .brand-mark {
-  background: linear-gradient(135deg, hsl(220, 75%, 65%) 0%, var(--sage) 100%);
-}
-
 html.dark .brand,
 [data-theme="dark"] .brand {
   color: #fff;
@@ -338,28 +333,26 @@ html.dark .site-header {
 }
 
 .brand-mark {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--navy) 0%, var(--sage) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 2px 8px rgba(26,43,74,0.2);
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   flex-shrink: 0;
   transition: transform var(--dur-med) var(--ease-out);
 }
 
-.brand:hover .brand-mark {
-  transform: rotate(-8deg) scale(1.08);
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
+  transition: transform var(--dur-med) var(--ease-out);
 }
 
-.brand-mark::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  border-radius: 3px;
-  border: 1.5px solid rgba(255,255,255,0.55);
+.brand:hover .brand-logo-img {
+  transform: scale(1.12) rotate(-4deg);
 }
 
 .brand-text {
@@ -797,11 +790,20 @@ html.dark .path-card::before {
   border-left: 4px solid var(--navy-light);
 }
 .path-legal .path-cta { color: var(--navy-light); }
+.path-help {
+  border-left: 4px solid hsl(260, 55%, 50%);
+}
+.path-help .path-icon {
+  background: linear-gradient(135deg, hsla(260,45%,45%,0.15) 0%, hsla(260,45%,45%,0.06) 100%);
+  color: hsl(260, 55%, 50%);
+}
+.path-help .path-cta { color: hsl(260, 55%, 50%); }
 
 /* Staggered card animations */
 .path-card:nth-child(1) { animation: rise var(--dur-slow) 0.06s var(--ease-out) both; }
 .path-card:nth-child(2) { animation: rise var(--dur-slow) 0.14s var(--ease-out) both; }
 .path-card:nth-child(3) { animation: rise var(--dur-slow) 0.22s var(--ease-out) both; }
+.path-card:nth-child(4) { animation: rise var(--dur-slow) 0.30s var(--ease-out) both; }
 
 /* ================================================================
    STATISTICS SECTION
@@ -4447,6 +4449,65 @@ html.dark .toast {
     font-size: 0.88rem;
     padding: 0.65rem 0.5rem;
   }
+/* ================================================================
+   ABOUT PAGE & AUTHOR CARD
+   ================================================================ */
+.author-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--sage-deep);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+  margin-bottom: 2rem;
+}
+.author-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+.author-avatar {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+.author-name {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 0;
+  line-height: 1.2;
+}
+html.dark .author-name,
+[data-theme="dark"] .author-name {
+  color: #ffffff !important;
+  text-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+}
+.author-desc {
+  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.65;
+  font-size: 1rem;
+}
+html.dark .author-desc,
+[data-theme="dark"] .author-desc {
+  color: hsl(215, 25%, 85%) !important;
+}
+
+.about-principle-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.4rem;
+  color: var(--ink);
+  line-height: 1.6;
+}
+html.dark .about-principle-card,
+[data-theme="dark"] .about-principle-card {
+  color: hsl(210, 40%, 96%) !important;
+  background: rgba(30, 41, 59, 0.7);
 }
 
 /* ================================================================
