@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: stalking-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stalking}
+      POSTGRES_USER: ${POSTGRES_USER:-stalking}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stalking_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - stalking_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stalking} -d ${POSTGRES_DB:-stalking}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  stalking_pgdata:

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page">
+  <h1>{{ t.resources_title }}</h1>
+  <p class="lead">{{ t.resources_intro }}</p>
+
+  <form class="filters" method="get" action="">
+    <label>{{ t.filter_region }}
+      <select name="region">
+        <option value="">{{ t.filter_all }}</option>
+        {% for r in regions %}
+        <option value="{{ r.slug }}" {% if selected_region == r.slug %}selected{% endif %}>
+          {% if lang == 'kk' %}{{ r.name_kk }}{% else %}{{ r.name_ru }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>{{ t.filter_type }}
+      <select name="type">
+        <option value="">{{ t.filter_all }}</option>
+        {% for value, label in service_types %}
+        <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="btn primary">{{ t.cta_open }}</button>
+  </form>
+
+  {% if services %}
+  <ul class="resource-list">
+    {% for s in services %}
+    <li class="resource-card">
+      <h2>{% if lang == 'kk' %}{{ s.name_kk }}{% else %}{{ s.name_ru }}{% endif %}</h2>
+      <p>{% if lang == 'kk' %}{{ s.services_kk }}{% else %}{{ s.services_ru }}{% endif %}</p>
+      {% if s.phone %}<p><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
+      {% if s.email %}<p><a href="mailto:{{ s.email }}">{{ s.email }}</a></p>{% endif %}
+      {% if s.website %}<p><a href="{{ s.website }}" rel="noopener noreferrer" target="_blank">{{ s.website }}</a></p>{% endif %}
+      <p class="meta">{{ t.source_label }}: <a href="{{ s.source_url }}" rel="noopener noreferrer" target="_blank">{{ s.source_name }}</a></p>
+      <p class="meta">{{ t.checked_label }}: {{ s.verified_at }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty-state" role="status">
+    <p>{{ t.resources_empty }}</p>
+    <p><a href="https://www.gov.kz/" rel="noopener noreferrer" target="_blank">{{ t.resources_official_link }}</a></p>
+  </div>
+  {% endif %}
+</article>
+{% endblock %}

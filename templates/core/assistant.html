@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page" id="assistant-app"
+  data-lang="{{ lang }}"
+  data-configured="{{ gemini_configured|yesno:'1,0' }}"
+  data-disabled="{{ t.assistant_disabled }}"
+  data-loading="{{ t.assistant_loading }}"
+  data-network="{{ t.error_network }}"
+  data-threat="{{ t.assistant_threat }}">
+  <h1>{{ t.assistant_title }}</h1>
+  <p class="lead">{{ t.assistant_intro }}</p>
+  <p class="warn-inline">{{ t.assistant_threat }}</p>
+
+  {% if not gemini_configured %}
+  <div class="empty-state" role="status">
+    <p>{{ t.assistant_disabled }}</p>
+  </div>
+  {% endif %}
+
+  <div class="consent-box" id="consent-box">
+    <label class="consent-label">
+      <input type="checkbox" id="ai-consent" {% if not gemini_configured %}disabled{% endif %}>
+      <span>{{ t.assistant_consent }}</span>
+    </label>
+  </div>
+
+  <div id="chat-log" class="chat-log" aria-live="polite"></div>
+
+  <form id="chat-form" class="chat-form" {% if not gemini_configured %}hidden{% endif %}>
+    {% csrf_token %}
+    <label for="chat-input" class="sr-only">{{ t.assistant_placeholder }}</label>
+    <textarea id="chat-input" rows="3" maxlength="2000" placeholder="{{ t.assistant_placeholder }}" disabled></textarea>
+    <div class="actions">
+      <button type="submit" class="btn primary" id="chat-send" disabled>{{ t.assistant_send }}</button>
+      <button type="button" class="btn ghost" id="chat-clear">{{ t.assistant_clear }}</button>
+    </div>
+  </form>
+</article>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/assistant.js" defer></script>
+{% endblock %}

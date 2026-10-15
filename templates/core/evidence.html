@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page" id="evidence-app"
+  data-export-title="{{ t.evidence_export_title }}"
+  data-export-note="{{ t.evidence_export_note }}"
+  data-export-disclaimer="{{ t.evidence_export_disclaimer }}">
+  <h1>{{ t.evidence_title }}</h1>
+  <p class="lead">{{ t.evidence_intro }}</p>
+  <div class="warn-inline">{{ t.evidence_export_warn }}</div>
+
+  <ul class="checklist" id="evidence-list">
+    {% for key in items %}
+    <li class="checklist-item">
+      <input type="checkbox" id="ev-{{ key }}" data-key="{{ key }}">
+      <div style="flex:1">
+        <label for="ev-{{ key }}">
+          {% if key == 'ev_messages' %}{{ t.ev_messages }}
+          {% elif key == 'ev_calls' %}{{ t.ev_calls }}
+          {% elif key == 'ev_dates' %}{{ t.ev_dates }}
+          {% elif key == 'ev_witnesses' %}{{ t.ev_witnesses }}
+          {% elif key == 'ev_medical' %}{{ t.ev_medical }}
+          {% else %}{{ t.ev_originals }}{% endif %}
+        </label>
+        <label class="note-label hint">{{ t.ev_note_label }}
+          <textarea data-note="{{ key }}" rows="2" autocomplete="off"></textarea>
+        </label>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <div class="actions">
+    <button type="button" class="btn primary" id="evidence-export">{{ t.evidence_export }}</button>
+    <button type="button" class="btn ghost" id="evidence-clear">{{ t.evidence_clear }}</button>
+  </div>
+</article>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/evidence.js" defer></script>
+{% endblock %}

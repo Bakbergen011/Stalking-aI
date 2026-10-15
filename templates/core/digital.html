@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page">
+  <h1>{{ t.digital_title }}</h1>
+  <p class="lead">{{ t.digital_intro }}</p>
+
+  <div class="guide-list">
+    {% for guide in guides %}
+    <details class="guide-card">
+      <summary>
+        {% if guide.title_key == 'digital_ig' %}{{ t.digital_ig }}
+        {% elif guide.title_key == 'digital_tg' %}{{ t.digital_tg }}
+        {% elif guide.title_key == 'digital_wa' %}{{ t.digital_wa }}
+        {% elif guide.title_key == 'digital_tt' %}{{ t.digital_tt }}
+        {% elif guide.title_key == 'digital_accounts' %}{{ t.digital_accounts }}
+        {% elif guide.title_key == 'digital_geo' %}{{ t.digital_geo }}
+        {% elif guide.title_key == 'digital_device' %}{{ t.digital_device }}
+        {% else %}{{ t.digital_trackers }}{% endif %}
+      </summary>
+      {% if guide.warn_notify %}
+      <p class="warn-inline">{{ t.digital_warn_notify }}</p>
+      {% endif %}
+      <ol>
+        {% if lang == 'kk' %}
+          {% for step in guide.steps.kk %}<li>{{ step }}</li>{% endfor %}
+        {% else %}
+          {% for step in guide.steps.ru %}<li>{{ step }}</li>{% endfor %}
+        {% endif %}
+      </ol>
+      {% if guide.official_url %}
+      <p><a href="{{ guide.official_url }}" rel="noopener noreferrer" target="_blank">{{ guide.official_url }}</a></p>
+      {% endif %}
+    </details>
+    {% endfor %}
+  </div>
+</article>
+{% endblock %}

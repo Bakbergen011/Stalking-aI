@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page">
+  <h1>{{ t.legal_title }}</h1>
+  <p class="lead">{{ t.legal_intro }}</p>
+  <p class="warn-inline">{{ t.legal_not_advice }}</p>
+  <p class="meta">{{ t.legal_checked }}</p>
+
+  <section>
+    <h2>{{ t.legal_sources_title }}</h2>
+    <ul class="source-list">
+      {% for item in curated %}
+      <li class="source-card">
+        <a href="{{ item.url }}" rel="noopener noreferrer" target="_blank">
+          {% if lang == 'kk' %}{{ item.title_kk }}{% else %}{{ item.title_ru }}{% endif %}
+        </a>
+        <p>{% if lang == 'kk' %}{{ item.note_kk }}{% else %}{{ item.note_ru }}{% endif %}</p>
+        <p class="meta">{{ t.checked_label }}: {{ item.verified }}</p>
+      </li>
+      {% endfor %}
+      {% for item in db_resources %}
+      <li class="source-card">
+        <a href="{{ item.official_url }}" rel="noopener noreferrer" target="_blank">{% if lang == 'kk' %}{{ item.title_kk }}{% else %}{{ item.title_ru }}{% endif %}</a>
+        {% if item.is_draft_translation %}<p class="draft-tag">draft</p>{% endif %}
+        <p class="meta">{{ t.checked_label }}: {{ item.verified_at }} · {{ t.source_label }}: {{ item.official_url }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="statement" id="statement-app" data-disclaimer="{{ t.statement_disclaimer }}">
+    <h2>{{ t.statement_title }}</h2>
+    <p class="warn-inline">{{ t.legal_not_advice }}</p>
+    <label>{{ t.statement_who }}
+      <input type="text" name="who" autocomplete="off">
+    </label>
+    <label>{{ t.statement_from }}
+      <input type="text" name="from" autocomplete="off">
+    </label>
+    <label>{{ t.statement_when }}
+      <input type="text" name="when" autocomplete="off">
+    </label>
+    <label>{{ t.statement_what }}
+      <textarea name="what" rows="4" autocomplete="off"></textarea>
+    </label>
+    <label>{{ t.statement_request }}
+      <textarea name="request" rows="3" autocomplete="off"></textarea>
+    </label>
+    <div class="actions">
+      <button type="button" class="btn primary" id="statement-build">{{ t.statement_build }}</button>
+      <button type="button" class="btn ghost" id="statement-clear">{{ t.statement_clear }}</button>
+    </div>
+    <label>{{ t.statement_output }}
+      <textarea id="statement-output" rows="10" readonly></textarea>
+    </label>
+  </section>
+</article>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/statement.js" defer></script>
+{% endblock %}

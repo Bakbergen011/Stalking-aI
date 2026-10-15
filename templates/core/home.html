@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{{ t.brand }} · Қазақстан</p>
+  <h1>{{ t.home_greeting }}</h1>
+  <p class="lead">{{ t.tagline }}</p>
+  <p class="question">{{ t.home_question }}</p>
+</section>
+
+<section class="path-grid" aria-label="{{ t.home_question }}">
+  <a class="path-card path-urgent" href="/{{ lang }}/urgent/">
+    <h2>{{ t.path_urgent_title }}</h2>
+    <p>{{ t.path_urgent_text }}</p>
+    <span class="path-cta">{{ t.cta_open }}</span>
+  </a>
+  <a class="path-card path-digital" href="/{{ lang }}/digital/">
+    <h2>{{ t.path_digital_title }}</h2>
+    <p>{{ t.path_digital_text }}</p>
+    <span class="path-cta">{{ t.cta_open }}</span>
+  </a>
+  <a class="path-card path-legal" href="/{{ lang }}/legal/">
+    <h2>{{ t.path_legal_title }}</h2>
+    <p>{{ t.path_legal_text }}</p>
+    <span class="path-cta">{{ t.cta_open }}</span>
+  </a>
+</section>
+
+<nav class="home-secondary" aria-label="{{ t.brand }}">
+  <a href="/{{ lang }}/risk/">{{ t.nav_risk }}</a>
+  <a href="/{{ lang }}/plan/">{{ t.nav_plan }}</a>
+  <a href="/{{ lang }}/evidence/">{{ t.nav_evidence }}</a>
+  <a href="/{{ lang }}/resources/">{{ t.nav_resources }}</a>
+  <a href="/{{ lang }}/assistant/">{{ t.nav_assistant }}</a>
+  <a href="/{{ lang }}/about/">{{ t.nav_about }}</a>
+</nav>
+{% endblock %}

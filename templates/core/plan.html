@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page" id="plan-app">
+  <h1>{{ t.plan_title }}</h1>
+  <p class="lead">{{ t.plan_intro }}</p>
+
+  <section class="plan-section">
+    <h2>{{ t.plan_now }}</h2>
+    <p class="hint">{{ t.plan_hint_now }}</p>
+    <label>{{ t.plan_safe_place }}
+      <textarea name="safe_place" rows="2" autocomplete="off"></textarea>
+    </label>
+    <label>{{ t.plan_trusted }}
+      <textarea name="trusted" rows="2" autocomplete="off"></textarea>
+    </label>
+    <label>{{ t.plan_codeword }}
+      <textarea name="codeword" rows="1" autocomplete="off"></textarea>
+    </label>
+  </section>
+
+  <section class="plan-section">
+    <h2>{{ t.plan_today }}</h2>
+    <p class="hint">{{ t.plan_hint_today }}</p>
+    <label>{{ t.plan_docs }}
+      <textarea name="docs" rows="2" autocomplete="off"></textarea>
+    </label>
+    <label>{{ t.plan_meds }}
+      <textarea name="meds" rows="2" autocomplete="off"></textarea>
+    </label>
+  </section>
+
+  <section class="plan-section">
+    <h2>{{ t.plan_later }}</h2>
+    <p class="hint">{{ t.plan_hint_later }}</p>
+    <label>{{ t.plan_notes }}
+      <textarea name="notes" rows="3" autocomplete="off"></textarea>
+    </label>
+  </section>
+
+  <div class="actions">
+    <button type="button" class="btn ghost" id="plan-clear">{{ t.plan_clear }}</button>
+  </div>
+</article>
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/plan.js" defer></script>
+{% endblock %}
