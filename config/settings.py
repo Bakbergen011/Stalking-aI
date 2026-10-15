@@ -169,7 +169,7 @@ GEMINI_MAX_INPUT_CHARS = int(os.getenv("GEMINI_MAX_INPUT_CHARS", "2000"))
 GEMINI_RATE_LIMIT_PER_MINUTE = int(os.getenv("GEMINI_RATE_LIMIT_PER_MINUTE", "8"))
 
 # Anonymous Help Request & Email Configuration
-HELP_REQUEST_EMAIL = os.getenv("HELP_REQUEST_EMAIL", "").strip()
+HELP_REQUEST_EMAIL = os.getenv("HELP_REQUEST_EMAIL", "maratkyzyerkenaz9@gmail.com").strip()
 HELP_REQUEST_RATE_LIMIT = int(os.getenv("HELP_REQUEST_RATE_LIMIT", "5"))
 
 EMAIL_BACKEND = os.getenv(
