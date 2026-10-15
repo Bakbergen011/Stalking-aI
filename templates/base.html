@@ -10,7 +10,7 @@
   <title>{{ t.site_title }}</title>
   <meta name="description" content="{{ t.tagline }}">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
-  <link rel="stylesheet" href="{% static 'css/main.css' %}?v=8.0">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}?v=8.5">
   <script>
     (function () {
       try {
@@ -98,6 +98,9 @@
   </main>
 
   <footer class="site-footer" role="contentinfo">
+    <p class="footer-author" style="font-size: 0.95rem; font-weight: 500; margin-bottom: 0.65rem; color: var(--ink);">
+      👩‍💻 {{ t.about_author_label }} <strong>{{ t.about_author_name }}</strong> · <a href="/{{ lang }}/about/" style="text-decoration: underline; color: inherit;">{{ t.about_title }}</a>
+    </p>
     <p>{{ t.footer_disclaimer }}</p>
     <p>{{ t.footer_privacy }}</p>
     <p>{{ t.footer_verified }}</p>
