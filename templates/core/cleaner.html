@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page cleaner-page" id="cleaner-app"
+  data-lang="{{ lang }}"
+  data-configured="{{ gemini_configured|yesno:'1,0' }}"
+  data-thinking="{{ t.ai_thinking }}"
+  data-copied="{{ t.ai_copied }}">
+
+  <header class="cleaner-header">
+    <div class="feature-tag">
+      <span class="badge-dot" style="background: #14b8a6; box-shadow: 0 0 8px #14b8a6;"></span>
+      <span>Digital Footprint Cleaner</span>
+    </div>
+    <h1>{{ t.cleaner_title }}</h1>
+    <p class="lead">{{ t.cleaner_intro }}</p>
+  </header>
+
+  <!-- Safety & Legal Disclaimer Card -->
+  <div class="card disclaimer-card">
+    <div class="quest-shield-icon">🔒</div>
+    <div>
+      <strong>{{ t.cleaner_disclaimer }}</strong>
+    </div>
+  </div>
+
+  <!-- SECTION 1: SELF-ASSESSMENT INDICATOR -->
+  <section class="card cleaner-audit-card">
+    <h2>{{ t.cleaner_section_audit }}</h2>
+    <p class="subtext">
+      {% if lang == 'kk' %}
+      Төмендегі сұрақтар бойынша өзіңіздің цифрлық ізіңізді тексеріп көріңіз. Сізге қатысты тұстарын белгілеңіз:
+      {% else %}
+      Оцените видимость и защищённость своих данных с помощью чек-листа самопроверки:
+      {% endif %}
+    </p>
+
+    <div class="cleaner-score-meter-wrap">
+      <div class="score-labels">
+        <span>{{ t.cleaner_score_label }}</span>
+        <strong id="cleaner-score-val">100%</strong>
+      </div>
+      <div class="cleaner-track">
+        <div class="cleaner-bar" id="cleaner-bar" style="width: 100%;"></div>
+      </div>
+      <div id="cleaner-level-badge" class="cleaner-badge good">
+        {% if lang == 'kk' %}Жоғары қорғаныс деңгейі{% else %}Высокий уровень защищённости{% endif %}
+      </div>
+    </div>
+
+    <ul class="audit-list">
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="15">
+          <span>
+            {% if lang == 'kk' %}
+            Көне форумдарда, сайттарда немесе енді қолданбайтын сервистерде ескі аккаунттарыңыз бар.
+            {% else %}
+            У вас есть старые/неиспользуемые аккаунты на форумах, сайтах или сервисах.
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="25">
+          <span>
+            {% if lang == 'kk' %}
+            Бірнеше түрлі сайтта бірдей немесе өте ұқсас құпия сөз қолданасыз.
+            {% else %}
+            Используете одинаковый или очень похожий пароль на разных сайтах.
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="20">
+          <span>
+            {% if lang == 'kk' %}
+            Телефон нөміріңіз Telegram немесе WhatsApp-та барлық адамдарға ашық көрінеді.
+            {% else %}
+            Номер телефона виден всем пользователям в Telegram или WhatsApp.
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="15">
+          <span>
+            {% if lang == 'kk' %}
+            Әлеуметтік желілердегі профиліңіз толық ашық, бейтаныс адамдар да барлық жеке фотоларыңызды көре алады.
+            {% else %}
+            Профиль в соцсетях открыт публично, незнакомцы видят личные фото и подписчиков.
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="20">
+          <span>
+            {% if lang == 'kk' %}
+            Негізгі email-поштаңызда немесе аккаунттарыңызда екі факторлы аутентификация (2FA) қосылмаған.
+            {% else %}
+            На основной почте или ключевых аккаунтах не включена двухфакторная аутентификация (2FA).
+            {% endif %}
+          </span>
+        </label>
+      </li>
+      <li class="audit-item">
+        <label class="audit-label">
+          <input type="checkbox" class="audit-check" data-penalty="10">
+          <span>
+            {% if lang == 'kk' %}
+            Google немесе Яндекс іздеу жүйесінде аты-жөніңізді тергенде жеке құжаттарыңыз немесе байланыс ақпаратыңыз шығады.
+            {% else %}
+            При поиске своего имени в Google или Яндекс находятся контактные данные или документы.
+            {% endif %}
+          </span>
+        </label>
+      </li>
+    </ul>
+
+    <div id="audit-feedback" class="audit-feedback-box" hidden></div>
+  </section>
+
+  <!-- SECTION 2: ACTIONABLE CLEANING GUIDES -->
+  <section class="card cleaner-guides-card">
+    <h2>{{ t.cleaner_section_guides }}</h2>
+    <div class="guide-accordion">
+      <details class="guide-item">
+        <summary>
+          <strong>{% if lang == 'kk' %}🔍 Google / Іздеу жүйелерінен деректерді өшіру{% else %}🔍 Удаление личных данных из поиска Google{% endif %}</strong>
+        </summary>
+        <div class="guide-body">
+          <p>
+            {% if lang == 'kk' %}
+            Google-дің жеке байланыс ақпараты (телефон, үй мекенжайы, жеке суреттер) табылған жағдайда іздеу нәтижелерінен алып тастауға арналған ресми құралы бар:
+            {% else %}
+            У Google есть официальный инструмент для удаления конфиденциальной личной информации (номер телефона, адрес, личные фото) из результатов поиска:
+            {% endif %}
+          </p>
+          <p><a href="https://support.google.com/websearch/troubleshooter/3111061" target="_blank" rel="noopener noreferrer">Google Search: Remove personal information ↗</a></p>
+          <p class="subtext">
+            {% if lang == 'kk' %}
+            Ескерту: Іздеу жүйесінен өшіру ақпаратты бастапқы сайттан жоймайды, бірақ басқа адамдардың табуын айтарлықтай қиындатады.
+            {% else %}
+            Примечание: Удаление из поисковой выдачи скрывает ссылки, но для полного удаления нужно обратиться к владельцу сайта.
+            {% endif %}
+          </p>
+        </div>
+      </details>
+
+      <details class="guide-item">
+        <summary>
+          <strong>{% if lang == 'kk' %}📱 Әлеуметтік желілердегі жариялылықты азайту{% else %}📱 Снижение публичности в соцсетях{% endif %}</strong>
+        </summary>
+        <div class="guide-body">
+          <ul>
+            <li>{% if lang == 'kk' %}<strong>Instagram / Threads:</strong> «Параметрлер → Құпиялылық → Жабық аккаунт» қосыңыз. Ескі сторис пен жарияланымдарды архивтеңіз.{% else %}<strong>Instagram / Threads:</strong> Включите «Закрытый аккаунт». Заархивируйте старые публикации с геометками.{% endif %}</li>
+            <li>{% if lang == 'kk' %}<strong>Telegram:</strong> «Баптаулар → Құпиялылық → Телефон нөмірі → Ешкім» және «Соңғы рет кіру → Ешкім» етіп орнатыңыз.{% else %}<strong>Telegram:</strong> Установите «Настройки → Конфиденциальность → Номер телефона → Никто» и скройте время захода.{% endif %}</li>
+            <li>{% if lang == 'kk' %}<strong>Синхрондауды өшіру:</strong> Телефон кітапшасындағы контактілерді әлеуметтік желілермен синхрондауды сөндіріңіз.{% else %}<strong>Синхронизация:</strong> Отключите синхронизацию контактов телефонной книги с приложениями соцсетей.{% endif %}</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="guide-item">
+        <summary>
+          <strong>{% if lang == 'kk' %}🔐 Құпия сөздерді жаңарту және 2FA қорғаныс{% else %}🔐 Обновление паролей и защита 2FA{% endif %}</strong>
+        </summary>
+        <div class="guide-body">
+          <ul>
+            <li>{% if lang == 'kk' %}Құпия сөз ретінде туған күн, аты-жөні немесе оңай сөздерді пайдаланбаңыз. Кемінде 12 таңбалы бірегей комбинация қолданыңыз.{% else %}Не используйте даты рождения, имена и простые слова. Используйте пароли длиной от 12 символов.{% endif %}</li>
+            <li>{% if lang == 'kk' %}SMS-кодтардың орнына мобильді аутентификаторды (Google Authenticator, Microsoft Authenticator) қосыңыз.{% else %}По возможности подключайте приложение-аутентификатор (Google Authenticator) вместо SMS.{% endif %}</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- SECTION 3: DATA DELETION REQUEST CONSTRUCTOR -->
+  <section class="card cleaner-request-card">
+    <h2>{{ t.cleaner_section_request }}</h2>
+    <p class="subtext">
+      {% if lang == 'kk' %}
+      Сайттан немесе онлайн қызметтен өзіңіз туралы ақпаратты жоюды талап ететін ресми өтініш үлгісін құрастырыңыз:
+      {% else %}
+      Сформируйте проект официального запроса на отзыв согласия и удаление ваших персональных данных с сайта или сервиса:
+      {% endif %}
+    </p>
+
+    <div class="request-builder-form">
+      <div class="field-row">
+        <label for="req-service">
+          {% if lang == 'kk' %}Сайттың немесе қызметтің атауы:{% else %}Название сайта или сервиса:{% endif %}
+        </label>
+        <input type="text" id="req-service" placeholder="Мысалы: Example.kz онлайн-дүкені / Форум">
+      </div>
+
+      <div class="field-row">
+        <label for="req-data-type">
+          {% if lang == 'kk' %}Жою қажет деректер түрлері:{% else %}Какие данные необходимо удалить:{% endif %}
+        </label>
+        <input type="text" id="req-data-type" placeholder="Мысалы: Аккаунт, телефон нөмірі, фотосуреттер, жазбалар">
+      </div>
+
+      <div class="field-row">
+        <label for="req-law">
+          {% if lang == 'kk' %}Құқықтық негіз:{% else %}Правовое основание:{% endif %}
+        </label>
+        <select id="req-law">
+          <option value="kz">ҚР «Дербес деректер және оларды қорғау туралы» Заңы (24-бап) / РК</option>
+          <option value="gdpr">GDPR (Article 17 — Right to Erasure / Еуропалық одақ)</option>
+        </select>
+      </div>
+
+      <!-- AI Consent Checkbox -->
+      <div class="consent-box" style="margin: 0.8rem 0;">
+        <label class="consent-label">
+          <input type="checkbox" id="cleaner-ai-consent" {% if not gemini_configured %}disabled{% endif %}>
+          <span class="consent-text">{{ t.assistant_consent }}</span>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn secondary" id="btn-gen-local-req">
+          {{ t.cleaner_gen_btn }} (Жергілікті үлгі)
+        </button>
+        <button type="button" class="btn primary" id="btn-gen-ai-req" {% if not gemini_configured %}disabled{% endif %}>
+          {{ t.cleaner_gen_btn }} (AI)
+        </button>
+      </div>
+    </div>
+
+    <!-- Generated Request Draft Box -->
+    <div id="request-output-box" class="request-draft-wrap" hidden>
+      <div class="draft-top">
+        <strong>{% if lang == 'kk' %}Дайын өтініш жобасы:{% else %}Проект официального запроса:{% endif %}</strong>
+        <button type="button" class="btn ghost btn-sm" id="btn-copy-draft">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span id="copy-draft-text">{{ t.cleaner_copy_btn }}</span>
+        </button>
+      </div>
+
+      <textarea id="draft-textarea" rows="12" class="draft-textarea"></textarea>
+
+      <div class="request-disclaimer-note">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>{{ t.cleaner_request_disclaimer }}</span>
+      </div>
+    </div>
+  </section>
+
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/cleaner.js?v=1.0" defer></script>
+{% endblock %}

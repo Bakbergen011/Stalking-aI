@@ -223,6 +223,27 @@ def assistant_page(request, lang=None):
 
 
 @require_GET
+def bodyguard(request, lang=None):
+    return render(
+        request, "core/bodyguard.html", _ctx(request, active="bodyguard")
+    )
+
+
+@require_GET
+def quest(request, lang=None):
+    return render(
+        request, "core/quest.html", _ctx(request, active="quest")
+    )
+
+
+@require_GET
+def cleaner(request, lang=None):
+    return render(
+        request, "core/cleaner.html", _ctx(request, active="cleaner")
+    )
+
+
+@require_GET
 def about(request, lang=None):
     return render(request, "core/about.html", _ctx(request, active="about"))
 
@@ -239,7 +260,7 @@ def set_language(request):
     if parts and parts[0] in {"kk", "ru"}:
         parts = parts[1:]
     rest = "/".join(parts)
-    target = f"/{lang}/{rest}" if rest else f"/{lang}/"
+    target = f"/{lang}/{rest}/" if rest else f"/{lang}/"
     response = HttpResponseRedirect(target)
     response.set_cookie(
         "stalking_lang",

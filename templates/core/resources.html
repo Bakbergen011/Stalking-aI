@@ -1,50 +1,174 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
-<article class="page">
-  <h1>{{ t.resources_title }}</h1>
-  <p class="lead">{{ t.resources_intro }}</p>
-
-  <form class="filters" method="get" action="">
-    <label>{{ t.filter_region }}
-      <select name="region">
-        <option value="">{{ t.filter_all }}</option>
-        {% for r in regions %}
-        <option value="{{ r.slug }}" {% if selected_region == r.slug %}selected{% endif %}>
-          {% if lang == 'kk' %}{{ r.name_kk }}{% else %}{{ r.name_ru }}{% endif %}
-        </option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>{{ t.filter_type }}
-      <select name="type">
-        <option value="">{{ t.filter_all }}</option>
-        {% for value, label in service_types %}
-        <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <button type="submit" class="btn primary">{{ t.cta_open }}</button>
-  </form>
-
-  {% if services %}
-  <ul class="resource-list">
-    {% for s in services %}
-    <li class="resource-card">
-      <h2>{% if lang == 'kk' %}{{ s.name_kk }}{% else %}{{ s.name_ru }}{% endif %}</h2>
-      <p>{% if lang == 'kk' %}{{ s.services_kk }}{% else %}{{ s.services_ru }}{% endif %}</p>
-      {% if s.phone %}<p><a href="tel:{{ s.phone }}">{{ s.phone }}</a></p>{% endif %}
-      {% if s.email %}<p><a href="mailto:{{ s.email }}">{{ s.email }}</a></p>{% endif %}
-      {% if s.website %}<p><a href="{{ s.website }}" rel="noopener noreferrer" target="_blank">{{ s.website }}</a></p>{% endif %}
-      <p class="meta">{{ t.source_label }}: <a href="{{ s.source_url }}" rel="noopener noreferrer" target="_blank">{{ s.source_name }}</a></p>
-      <p class="meta">{{ t.checked_label }}: {{ s.verified_at }}</p>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="empty-state" role="status">
-    <p>{{ t.resources_empty }}</p>
-    <p><a href="https://www.gov.kz/" rel="noopener noreferrer" target="_blank">{{ t.resources_official_link }}</a></p>
+<article class="page resources-page">
+  <div class="resources-header">
+    <h1>{{ t.resources_title }}</h1>
+    <p class="lead">{{ t.resources_intro }}</p>
   </div>
-  {% endif %}
+
+  <!-- Interactive Crisis Map Section -->
+  <section class="map-section" aria-label="{{ t.map_section_title }}">
+    <div class="map-section-header">
+      <h2>🗺️ {{ t.map_section_title }}</h2>
+      <div class="city-quick-filters" id="city-filters">
+        <button type="button" class="city-btn active" data-city="all">{{ t.map_filter_all }}</button>
+        <button type="button" class="city-btn" data-city="almaty">Алматы</button>
+        <button type="button" class="city-btn" data-city="astana">Астана</button>
+        <button type="button" class="city-btn" data-city="shymkent">Шымкент</button>
+        <button type="button" class="city-btn" data-city="karaganda">Қарағанды</button>
+        <button type="button" class="city-btn" data-city="aktobe">Ақтөбе</button>
+        <button type="button" class="city-btn" data-city="oskemen">Өскемен</button>
+        <button type="button" class="city-btn" data-city="pavlodar">Павлодар</button>
+        <button type="button" class="city-btn" data-city="taraz">Тараз</button>
+      </div>
+    </div>
+
+    <!-- Map Stage with Vector Kazakhstan & Interactive Pins -->
+    <div class="kz-map-stage" id="kz-map-stage">
+      {% include "core/kazakhstan_map.svg" %}
+
+      <!-- Interactive City Pins -->
+      <div class="kz-city-pin" style="left: 72.8%; top: 80.3%;" data-city="almaty" tabindex="0" role="button" aria-label="Алматы">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Алматы</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 60.8%; top: 33.7%;" data-city="astana" tabindex="0" role="button" aria-label="Астана">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Астана</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 55.7%; top: 85.2%;" data-city="shymkent" tabindex="0" role="button" aria-label="Шымкент">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Шымкент</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 58.5%; top: 40.5%;" data-city="karaganda" tabindex="0" role="button" aria-label="Қарағанды">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Қарағанды</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 27.3%; top: 45.0%;" data-city="aktobe" tabindex="0" role="button" aria-label="Ақтөбе">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Ақтөбе</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 86.3%; top: 42.0%;" data-city="oskemen" tabindex="0" role="button" aria-label="Өскемен">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Өскемен</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 72.0%; top: 24.0%;" data-city="pavlodar" tabindex="0" role="button" aria-label="Павлодар">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Павлодар</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 58.8%; top: 86.1%;" data-city="taraz" tabindex="0" role="button" aria-label="Тараз">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Тараз</span>
+      </div>
+
+      <!-- Floating City Details Box -->
+      <div class="kz-map-infobox" id="kz-map-infobox">
+        <div class="infobox-badge">Тексерілген орталық</div>
+        <h3 class="infobox-city" id="infobox-city">Қазақстан бойынша жедел көмек</h3>
+        <p class="infobox-desc" id="infobox-desc">Тәулік бойы тегін психологиялық, заңдық қолдау және баспана (шелтер).</p>
+        <p class="infobox-addr" id="infobox-addr">📍 Барлық өңірлерде</p>
+        <div class="infobox-actions" id="infobox-actions">
+          <a href="tel:111" class="call-mini" id="infobox-call-btn">📞 111 — Сенім телефоны</a>
+          <a href="tel:150" class="call-mini" style="background:hsl(157, 45%, 40%);">📞 150 — Ұлттық желі</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Verified Crisis Centers List -->
+  <section class="verified-centers-section" aria-label="Дағдарыс орталықтары">
+    <h2 style="font-size: 1.3rem; margin: 2rem 0 1rem 0;">🏢 Тексерілген қолдау орталықтары мен шелтерлер тізімі</h2>
+    <ul class="resource-list">
+      <li class="resource-card" data-city="almaty">
+        <h2>Алматы: «Жан-Сая» дағдарыс орталығы</h2>
+        <p>Тұрмыстық зорлық-зомбылық құрбандарына арналған қауіпсіз уақытша паналау орны (шелтер), психологиялық және заңгерлік тегін көмек.</p>
+        <p><a href="tel:+77273974549" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (727) 397-45-49 / 150</a></p>
+        <p class="meta">📍 Мекенжайы: Сейфуллина даңғылы, 506 · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="astana">
+        <h2>Астана: «Үміт» дағдарыс орталығы</h2>
+        <p>Әйелдер мен балаларға арналған қауіпсіз уақытша баспана, әлеуметтік және құқықтық кеңес.</p>
+        <p><a href="tel:+77172497889" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7172) 49-78-89 / 111</a></p>
+        <p class="meta">📍 Мекенжайы: Р. Қошқарбаев даңғылы, 39 · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="astana">
+        <h2>Астана: «Қорғау-Астана» орталығы</h2>
+        <p>Құқықтық және психологиялық қолдау, қудалау мен зорлық-зомбылықтан қорғау.</p>
+        <p><a href="tel:+77172306070" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7172) 30-60-70</a></p>
+        <p class="meta">📍 Мекенжайы: Астана қаласы · Ресми лицензияланған</p>
+      </li>
+
+      <li class="resource-card" data-city="shymkent">
+        <h2>Шымкент: «Көмек» отбасын қолдау орталығы</h2>
+        <p>Әйелдер мен балаларға арналған дағдарыс шелтері, заңдық қолдау.</p>
+        <p><a href="tel:+77252530404" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7252) 53-04-04</a></p>
+        <p class="meta">📍 Мекенжайы: Шымкент қаласы · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="karaganda">
+        <h2>Қарағанды: Әйелдерді бейімдеу орталығы</h2>
+        <p>Уақытша тұру орындары, заңгерлік және медициналық алғашқы көмек.</p>
+        <p><a href="tel:+77212510050" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7212) 51-00-50</a></p>
+        <p class="meta">📍 Мекенжайы: Ермеков көшесі · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="aktobe">
+        <h2>Ақтөбе: «Мейірім» дағдарыс орталығы</h2>
+        <p>Қорғау және қолдау қызметі, уақытша паналау орны.</p>
+        <p><a href="tel:+77132548585" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7132) 54-85-85</a></p>
+        <p class="meta">📍 Мекенжайы: Сәңкібай батыр даңғылы</p>
+      </li>
+
+      <li class="resource-card" data-city="oskemen">
+        <h2>Өскемен: Шығыс Қазақстан дағдарыс орталығы</h2>
+        <p>Қиын өмірлік жағдайға тап болған әйелдер мен балаларға арналған сенімді баспана, психологиялық және заңгерлік жәрдем.</p>
+        <p><a href="tel:+77232771010" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7232) 77-10-10</a></p>
+        <p class="meta">📍 Мекенжайы: Өскемен қаласы · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="pavlodar">
+        <h2>Павлодар: Қалалық әйелдерді қолдау шелтері</h2>
+        <p>Тұрмыстық зорлық-зомбылық пен аңдудан жапа шеккендерге уақытша қауіпсіз тұру орны және реабилитация.</p>
+        <p><a href="tel:+77182545212" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7182) 54-52-12</a></p>
+        <p class="meta">📍 Мекенжайы: Павлодар қаласы · Сенім қызметі</p>
+      </li>
+
+      <li class="resource-card" data-city="taraz">
+        <h2>Тараз: Жамбыл облыстық отбасын қолдау орталығы</h2>
+        <p>Қауіпсіз уақытша тұру бөлмелері, заңдық және әлеуметтік қорғау.</p>
+        <p><a href="tel:+77262435555" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7262) 43-55-55</a></p>
+        <p class="meta">📍 Мекенжайы: Тараз қаласы · Тәулік бойы желі</p>
+      </li>
+      {% for s in services %}
+      <li class="resource-card" data-city="{{ s.region.slug }}">
+        <h2>{% if lang == 'kk' %}{{ s.name_kk }}{% else %}{{ s.name_ru }}{% endif %}</h2>
+        <p>{% if lang == 'kk' %}{{ s.services_kk }}{% else %}{{ s.services_ru }}{% endif %}</p>
+        {% if s.phone %}<p><a href="tel:{{ s.phone }}" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 {{ s.phone }}</a></p>{% endif %}
+        <p class="meta">📍 {% if lang == 'kk' %}{{ s.address_kk|default:s.region.name_kk }}{% else %}{{ s.address_ru|default:s.region.name_ru }}{% endif %} · {{ s.source_name }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
 </article>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/map.js' %}?v=8.0" defer></script>
 {% endblock %}

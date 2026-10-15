@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page bodyguard-page" id="bodyguard-app"
+  data-lang="{{ lang }}"
+  data-configured="{{ gemini_configured|yesno:'1,0' }}"
+  data-thinking="{{ t.ai_thinking }}"
+  data-remove-file="{{ t.ai_remove_file }}">
+
+  <header class="bodyguard-header">
+    <div class="feature-tag">
+      <span class="badge-dot"></span>
+      <span>AI Digital Bodyguard</span>
+    </div>
+    <h1>{{ t.bodyguard_title }}</h1>
+    <p class="lead">{{ t.bodyguard_intro }}</p>
+  </header>
+
+  <!-- Segment Switcher -->
+  <div class="segment-tabs" role="tablist" aria-label="Bodyguard modes">
+    <button type="button" class="tab-btn is-active" id="tab-scanner-btn" role="tab" aria-selected="true" aria-controls="section-scanner">
+      {{ t.bodyguard_tab_scanner }}
+    </button>
+    <button type="button" class="tab-btn" id="tab-sos-btn" role="tab" aria-selected="false" aria-controls="section-sos">
+      {{ t.bodyguard_tab_sos }}
+    </button>
+  </div>
+
+  <!-- SECTION 1: DIGITAL FOOTPRINT SCANNER -->
+  <section id="section-scanner" class="bodyguard-section" role="tabpanel" aria-labelledby="tab-scanner-btn">
+    <div class="card intro-card">
+      <h2>{{ t.bodyguard_scanner_title }}</h2>
+      <p>{{ t.bodyguard_scanner_desc }}</p>
+      
+      <div class="anon-alert" role="note">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <strong>{{ t.bodyguard_anon_warning }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Risk Factors Checklist -->
+    <div class="card checklist-card">
+      <h3>{{ t.bodyguard_checklist_title }}</h3>
+      <p class="subtext">
+        {% if lang == 'kk' %}
+        Посттарыңызда, стористе немесе биода төмендегі деректер көріне ме? Белгілеп, қауіп деңгейін тексеріңіз:
+        {% else %}
+        Присутствуют ли в ваших публикациях, историях или описании профиля следующие маркеры? Отметьте их:
+        {% endif %}
+      </p>
+
+      <ul class="factor-list">
+        <li class="factor-item">
+          <label class="factor-label">
+            <input type="checkbox" class="factor-check" data-risk="high" data-name="geo">
+            <span>{{ t.bodyguard_f_geo }}</span>
+          </label>
+          <span class="risk-pill high">{% if lang == 'kk' %}Жоғары қауіп{% else %}Высокий риск{% endif %}</span>
+        </li>
+        <li class="factor-item">
+          <label class="factor-label">
+            <input type="checkbox" class="factor-check" data-risk="high" data-name="home">
+            <span>{{ t.bodyguard_f_home }}</span>
+          </label>
+          <span class="risk-pill high">{% if lang == 'kk' %}Жоғары қауіп{% else %}Высокий риск{% endif %}</span>
+        </li>
+        <li class="factor-item">
+          <label class="factor-label">
+            <input type="checkbox" class="factor-check" data-risk="medium" data-name="work">
+            <span>{{ t.bodyguard_f_work }}</span>
+          </label>
+          <span class="risk-pill medium">{% if lang == 'kk' %}Орташа қауіп{% else %}Умеренный риск{% endif %}</span>
+        </li>
+        <li class="factor-item">
+          <label class="factor-label">
+            <input type="checkbox" class="factor-check" data-risk="high" data-name="phone">
+            <span>{{ t.bodyguard_f_phone }}</span>
+          </label>
+          <span class="risk-pill high">{% if lang == 'kk' %}Жоғары қауіп{% else %}Высокий риск{% endif %}</span>
+        </li>
+        <li class="factor-item">
+          <label class="factor-label">
+            <input type="checkbox" class="factor-check" data-risk="medium" data-name="settings">
+            <span>{{ t.bodyguard_f_settings }}</span>
+          </label>
+          <span class="risk-pill medium">{% if lang == 'kk' %}Орташа қауіп{% else %}Умеренный риск{% endif %}</span>
+        </li>
+      </ul>
+
+      <!-- Local Checklist Result Box -->
+      <div id="checklist-result-box" class="checklist-summary" hidden></div>
+    </div>
+
+    <!-- Text & Screenshot Analyzer Form -->
+    <div class="card scan-card">
+      <h3>
+        {% if lang == 'kk' %}Жеке мәтін немесе скриншотты қауіпсіз талдау{% else %}Безопасный анализ текста или скриншота{% endif %}
+      </h3>
+      <p class="subtext">
+        {% if lang == 'kk' %}
+        Жазбаларыңызды жергілікті талдаудан өткізіңіз немесе AI арқылы тексеріңіз. Барлық деректер тек осы сәтте жадта өңделеді және сақталмайды.
+        {% else %}
+        Проверьте текст публикации или скриншот. Данные обрабатываются в оперативной памяти и никуда не сохраняются.
+        {% endif %}
+      </p>
+
+      <form id="footprint-form" class="footprint-form" novalidate>
+        <div class="field-group">
+          <textarea id="scanner-text" rows="4" placeholder="{{ t.bodyguard_input_placeholder }}"></textarea>
+        </div>
+
+        <div class="scanner-file-row">
+          <label class="file-upload-btn" for="scanner-file">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span id="scanner-file-label">{{ t.ai_attach_file }}</span>
+          </label>
+          <input type="file" id="scanner-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden>
+          <span id="scanner-file-name" class="file-badge" hidden></span>
+        </div>
+
+        <!-- AI Consent Checkbox -->
+        <div class="consent-box" style="margin: 1rem 0;">
+          <label class="consent-label">
+            <input type="checkbox" id="scanner-ai-consent" {% if not gemini_configured %}disabled{% endif %}>
+            <span class="consent-text">{{ t.assistant_consent }}</span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn secondary" id="btn-local-scan">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>{{ t.bodyguard_scan_btn }}</span>
+          </button>
+          <button type="button" class="btn primary" id="btn-ai-scan" {% if not gemini_configured %}disabled{% endif %}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>{{ t.bodyguard_ai_deep_scan }}</span>
+          </button>
+        </div>
+      </form>
+
+      <div id="scanner-output" class="scanner-result" hidden role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: SOS REAL-TIME TRACKER (SAFETY TIMER) -->
+  <section id="section-sos" class="bodyguard-section" role="tabpanel" aria-labelledby="tab-sos-btn" hidden>
+    <div class="card intro-card">
+      <h2>{{ t.bodyguard_sos_title }}</h2>
+      <p>{{ t.bodyguard_sos_desc }}</p>
+
+      <div class="privacy-notice-box" role="note">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>{{ t.bodyguard_sos_privacy_note }}</span>
+      </div>
+    </div>
+
+    <!-- Timer Setup & Clock Box -->
+    <div class="card timer-card">
+      <div id="timer-setup-view">
+        <h3>{{ t.bodyguard_sos_duration_label }}</h3>
+        <div class="duration-presets" role="group">
+          <button type="button" class="preset-btn" data-minutes="10">{{ t.bodyguard_sos_10m }}</button>
+          <button type="button" class="preset-btn is-active" data-minutes="20">{{ t.bodyguard_sos_20m }}</button>
+          <button type="button" class="preset-btn" data-minutes="30">{{ t.bodyguard_sos_30m }}</button>
+          <button type="button" class="preset-btn" data-minutes="60">{{ t.bodyguard_sos_60m }}</button>
+        </div>
+
+        <div class="custom-duration-row">
+          <label for="custom-minutes">
+            {% if lang == 'kk' %}Немесе өз минуттарыңызды енгізіңіз:{% else %}Или укажите минуты вручную:{% endif %}
+          </label>
+          <input type="number" id="custom-minutes" min="1" max="180" value="20" class="input-number">
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn primary btn-large" id="btn-start-timer">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>{{ t.bodyguard_sos_start }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Timer Running View -->
+      <div id="timer-active-view" class="timer-display-area" hidden>
+        <div class="countdown-circle">
+          <div class="countdown-ring-inner">
+            <span class="countdown-digits" id="timer-clock">20:00</span>
+            <span class="countdown-sub" id="timer-status-text">
+              {% if lang == 'kk' %}Таймер белсенді{% else %}Таймер активен{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button type="button" class="btn secondary" id="btn-pause-timer">{{ t.bodyguard_sos_pause }}</button>
+          <button type="button" class="btn secondary" id="btn-add-5m">{{ t.bodyguard_sos_add_5m }}</button>
+          <button type="button" class="btn secondary" id="btn-add-15m">{{ t.bodyguard_sos_add_15m }}</button>
+          <button type="button" class="btn safe-stop" id="btn-stop-timer">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>{{ t.bodyguard_sos_stop }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Expired Alert View -->
+      <div id="timer-expired-view" class="timer-alarm-box" hidden role="alert">
+        <div class="alarm-header">
+          <div class="alarm-icon-pulse">🚨</div>
+          <h3>{{ t.bodyguard_sos_expired_title }}</h3>
+          <p class="alarm-lead">{{ t.bodyguard_sos_expired_lead }}</p>
+        </div>
+
+        <div class="alarm-call-grid">
+          <a href="tel:102" class="call-action police">
+            <span class="ca-num">102</span>
+            <span class="ca-desc">{{ t.sos_call_police }}</span>
+          </a>
+          <a href="tel:112" class="call-action emergency">
+            <span class="ca-num">112</span>
+            <span class="ca-desc">{{ t.sos_call_emergency }}</span>
+          </a>
+          <a href="tel:103" class="call-action medical">
+            <span class="ca-num">103</span>
+            <span class="ca-desc">{{ t.sos_call_medical }}</span>
+          </a>
+          <a href="tel:111" class="call-action hotline">
+            <span class="ca-num">111</span>
+            <span class="ca-desc">{{ t.sos_call_hotline }}</span>
+          </a>
+        </div>
+
+        <div class="actions" style="margin-top: 1.5rem; justify-content: center;">
+          <button type="button" class="btn safe-stop" id="btn-alarm-dismiss">
+            {{ t.bodyguard_sos_stop }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/bodyguard.js?v=1.0" defer></script>
+{% endblock %}

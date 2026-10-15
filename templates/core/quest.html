@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="page quest-page" id="quest-app"
+  data-lang="{{ lang }}"
+  data-configured="{{ gemini_configured|yesno:'1,0' }}"
+  data-thinking="{{ t.ai_thinking }}">
+
+  <header class="quest-header">
+    <div class="feature-tag">
+      <span class="badge-dot" style="background: #6366f1; box-shadow: 0 0 8px #6366f1;"></span>
+      <span>OSINT & Cyber-Detective Quest</span>
+    </div>
+    <h1>{{ t.quest_title }}</h1>
+    <p class="lead">{{ t.quest_intro }}</p>
+  </header>
+
+  <div class="card disclaimer-card">
+    <div class="quest-shield-icon">🛡️</div>
+    <div>
+      <strong>{{ t.quest_disclaimer }}</strong>
+    </div>
+  </div>
+
+  <!-- Case Selector -->
+  <div class="card selector-card">
+    <div class="selector-header">
+      <h2>{{ t.quest_select_case }}</h2>
+      <button type="button" class="btn ghost btn-sm" id="btn-ai-gen-case" {% if not gemini_configured %}disabled title="AI қажет"{% endif %}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+        <span>{{ t.quest_ai_generate_new }}</span>
+      </button>
+    </div>
+
+    <div class="case-grid" id="case-grid">
+      <button type="button" class="case-card is-active" data-case="1">
+        <span class="case-num">Кейс #1</span>
+        <strong class="case-title">
+          {% if lang == 'kk' %}Шұғыл посылка және фишинг сілтеме{% else %}Срочная посылка и фишинг-ссылка{% endif %}
+        </strong>
+        <span class="case-topic">
+          {% if lang == 'kk' %}Фишинг белгілері мен домен тексеру{% else %}Признаки фишинга и проверка домена{% endif %}
+        </span>
+      </button>
+
+      <button type="button" class="case-card" data-case="2">
+        <span class="case-num">Кейс #2</span>
+        <strong class="case-title">
+          {% if lang == 'kk' %}Абайсызда жарияланған фото мен гео-дерек{% else %}Неосторожное фото и геоданные{% endif %}
+        </strong>
+        <span class="case-topic">
+          {% if lang == 'kk' %}Фондық белгілер мен тұрғын үй құпиялылығы{% else %}Фоновые ориентиры и приватность жилья{% endif %}
+        </span>
+      </button>
+
+      <button type="button" class="case-card" data-case="3">
+        <span class="case-num">Кейс #3</span>
+        <strong class="case-title">
+          {% if lang == 'kk' %}«Инкогнито қонақтар» және жалған шпиондық бот{% else %}«Гости страницы» и фейковый шпион-бот{% endif %}
+        </strong>
+        <span class="case-topic">
+          {% if lang == 'kk' %}2FA кодтары мен аккаунтты қорғау{% else %}Коды 2FA и защита аккаунта{% endif %}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Active Quest Arena -->
+  <div class="card quest-arena" id="quest-arena">
+    <!-- Case Header & Progress -->
+    <div class="arena-top">
+      <div class="arena-meta">
+        <span class="badge-stage" id="arena-stage">
+          {% if lang == 'kk' %}1-қадам: Деректерді зерттеу{% else %}Шаг 1: Изучение улик{% endif %}
+        </span>
+        <h3 id="arena-title" class="arena-heading">Кейс атауы</h3>
+      </div>
+      <div class="arena-ai-hint-wrap">
+        <button type="button" class="btn ghost btn-sm" id="btn-ask-hint" {% if not gemini_configured %}disabled{% endif %}>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>{{ t.quest_ai_mentor }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Mentor Hint Bubble -->
+    <div id="mentor-bubble" class="mentor-bubble" hidden>
+      <div class="mentor-avatar">🧠 AI Ментор:</div>
+      <div id="mentor-text" class="mentor-text"></div>
+    </div>
+
+    <!-- Clues / Evidence Board -->
+    <div class="clue-board" id="clue-board">
+      <div class="clue-box" id="clue-content">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- Interactive Question & Options -->
+    <div class="quest-task-box" id="quest-task-box">
+      <h4 id="task-question" class="task-question">Сұрақ...</h4>
+      <div class="task-options" id="task-options" role="radiogroup">
+        <!-- Options injected by JS -->
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="btn-submit-answer">{{ t.quest_check_answer }}</button>
+        <button type="button" class="btn secondary" id="btn-next-step" hidden>{{ t.quest_next_step }}</button>
+      </div>
+
+      <div id="answer-feedback" class="answer-feedback" hidden role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- Completion Card -->
+    <div id="quest-completion-box" class="completion-box" hidden>
+      <div class="completion-icon">🎯</div>
+      <h3>{{ t.quest_case_completed }}</h3>
+      <div class="learned-principles" id="learned-principles">
+        <h4>{{ t.quest_principles_learned }}</h4>
+        <ul id="principles-list"></ul>
+      </div>
+      <div class="actions" style="margin-top: 1.25rem;">
+        <button type="button" class="btn primary" id="btn-restart-quest">
+          {% if lang == 'kk' %}Келесі кейсті шешу{% else %}Выбрать следующий кейс{% endif %}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/quest.js?v=1.0" defer></script>
+{% endblock %}
