@@ -338,11 +338,15 @@ def _send_help_request_via_web3forms(
         }
 
     req = urllib.request.Request(url, data=payload, headers=headers)
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        res = json.loads(resp.read().decode("utf-8"))
-        if not res.get("success"):
-            raise RuntimeError(res.get("message", "Web3Forms submission failed"))
-        return res
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+            if not res.get("success"):
+                raise RuntimeError(res.get("message", "Web3Forms submission failed"))
+            return res
+    except urllib.error.HTTPError as e:
+        err_text = e.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Web3Forms API қатесі ({e.code}): {err_text}") from e
 
 
 @require_http_methods(["GET", "POST"])
@@ -686,7 +690,7 @@ def help_request(request, lang=None):
         )
     except Exception as e:
         logger = logging.getLogger("apps.core")
-        logger.error("Help request email dispatch failed: %s", type(e).__name__)
+        logger.error("Help request email dispatch failed: %s (%s)", type(e).__name__, e)
         error_msg = (
             "Хатты жеткізу кезінде техникалық қате орын алды. Өтінішіңізді ресми байланыс нөмірлері арқылы жеткізуіңізді сұраймыз."
             if lang_code == "kk"
