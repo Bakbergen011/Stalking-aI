@@ -5,7 +5,7 @@ import time
 import uuid
 
 from django.conf import settings
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -454,21 +454,92 @@ def help_request(request, lang=None):
                 status=400,
             )
 
-    # 6. Compose and send plain text email
-    subject = "[Stalking-AI] Жаңа анонимді көмек сұрауы / Новое обращение"
+    # 6. Compose and send email (plain text + clean HTML card)
+    req_id = uuid.uuid4().hex[:6].upper()
+    req_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
+    subject = f"[Stalking-AI] Көмек сұрауы #{req_id} ({req_time} UTC)"
+
+    contact_display = contact if contact else ("(Көрсетілмеген / Толық анонимді)" if lang_code == "kk" else "(Не указан / Полная анонимность)")
+    attachment_display = (
+        ("Бар (метадеректер тазартылған)" if clean_attachment else "Жоқ")
+        if lang_code == "kk"
+        else ("Есть (метаданные очищены)" if clean_attachment else "Нет")
+    )
+
+    # Clean plain text version (without repeated '===' or '---' that cause Gmail barcode look & collapse)
     email_body = (
-        "Stalking-AI платформасынан жаңа көмек сұрауы келіп түсті.\n"
-        "==========================================================\n\n"
-        f"Уақыты (UTC): {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        f"Кері байланыс дерегі: {contact if contact else '(Көрсетілмеген / Толық анонимді)'}\n\n"
-        "--- ХАБАРЛАМА МӘТІНІ ---\n"
-        f"{message}\n"
-        "------------------------\n\n"
-        f"Тіркелген сурет: {'Бар (метадеректер тазартылған)' if clean_attachment else 'Жоқ'}\n\n"
+        f"Stalking-AI платформасынан жаңа көмек сұрауы (#{req_id})\n\n"
+        f"Уақыты (UTC): {req_time}\n"
+        f"Кері байланыс дерегі: {contact_display}\n"
+        f"Тіркелген сурет: {attachment_display}\n\n"
+        "ХАБАРЛАМА МӘТІНІ:\n"
+        f"{message}\n\n"
         "Қауіпсіздік ескертпесі:\n"
         "Бұл хат пайдаланушы өтініші бойынша тікелей жіберілді.\n"
         "Дерекқорда немесе жүйелік логтарда оның көшірмесі сақталмады (Zero-Persistence)."
     )
+
+    from django.utils.html import escape, linebreaks
+    escaped_message = linebreaks(escape(message))
+    escaped_contact = escape(contact_display)
+    if contact:
+        if "@" in contact:
+            contact_html = f"<a href='mailto:{escape(contact)}' style='color:#2563eb;font-weight:700;text-decoration:underline;'>{escape(contact)}</a>"
+        elif any(c.isdigit() for c in contact):
+            contact_html = f"<a href='tel:{escape(contact)}' style='color:#2563eb;font-weight:700;text-decoration:underline;'>{escape(contact)}</a>"
+        else:
+            contact_html = f"<strong style='color:#0f172a;'>{escape(contact)}</strong>"
+    else:
+        contact_html = f"<span style='color:#64748b;font-style:italic;'>{escaped_contact}</span>"
+
+    email_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 24px 12px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width: 620px; background: #ffffff; border-radius: 12px; border: 1px solid #cbd5e1; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="background: #1e3a8a; color: #ffffff; padding: 20px 24px;">
+              <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #ffffff;">🛡️ Stalking-AI — Жаңа көмек сұрауы</h2>
+              <div style="margin-top: 6px; font-size: 13px; color: #93c5fd;">Өтініш №: <strong>#{req_id}</strong> &bull; Уақыты (UTC): {req_time}</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px;">
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <table role="presentation" width="100%" cellpadding="4" cellspacing="0" border="0">
+                  <tr>
+                    <td width="160" style="font-weight: 600; color: #475569; font-size: 14px; vertical-align: top;">📞 Кері байланыс:</td>
+                    <td style="font-size: 15px;">{contact_html}</td>
+                  </tr>
+                  <tr>
+                    <td width="160" style="font-weight: 600; color: #475569; font-size: 14px; vertical-align: top;">📎 Тіркелген сурет:</td>
+                    <td style="font-size: 14px; color: #334155;">{attachment_display}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div style="margin-bottom: 8px; font-weight: 700; font-size: 15px; color: #0f172a;">💬 Хабарлама мәтіні:</div>
+              <div style="background: #ffffff; border: 1px solid #94a3b8; border-left: 5px solid #2563eb; border-radius: 6px; padding: 16px; font-size: 15px; line-height: 1.6; color: #0f172a; word-break: break-word;">
+                {escaped_message}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; line-height: 1.5;">
+              🔒 <strong>Zero-Persistence қауіпсіздігі:</strong> Бұл хат пайдаланушы өтініші бойынша тікелей жіберілді. Оның мазмұны серверде, дерекқорда немесе логинг жүйесінде сақталмады.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
     try:
         reply_to_list = None
@@ -477,13 +548,14 @@ def help_request(request, lang=None):
             if match:
                 reply_to_list = [match.group(0)]
 
-        email = EmailMessage(
+        email = EmailMultiAlternatives(
             subject=subject,
             body=email_body,
             from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "Stalking-AI <noreply@stalking-ai.org>"),
             to=[recipient_email],
             reply_to=reply_to_list,
         )
+        email.attach_alternative(email_html, "text/html")
         if clean_attachment and clean_filename and clean_mime:
             email.attach(clean_filename, clean_attachment, clean_mime)
 
