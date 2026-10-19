@@ -253,13 +253,106 @@ def cleaner(request, lang=None):
     )
 
 
+def _send_help_request_via_web3forms(
+    access_key,
+    subject,
+    message,
+    contact,
+    req_id,
+    req_time,
+    clean_attachment=None,
+    clean_filename=None,
+    clean_mime=None,
+):
+    import json
+    import urllib.request
+    import uuid
+
+    url = "https://api.web3forms.com/submit"
+    contact_val = contact if contact else "Толық анонимді (Көрсетілмеген)"
+    attachment_val = "Бар (метадеректер тазартылған)" if clean_attachment else "Жоқ"
+
+    formatted_message = (
+        f"Өтініш №: #{req_id}\n"
+        f"Уақыты (UTC): {req_time}\n"
+        f"Кері байланыс дерегі: {contact_val}\n"
+        f"Тіркелген сурет: {attachment_val}\n\n"
+        f"--- ХАБАРЛАМА МӘТІНІ ---\n"
+        f"{message}\n\n"
+        f"Zero-Persistence: Бұл хат пайдаланушы өтініші бойынша тікелей жеткізілді."
+    )
+
+    if clean_attachment and clean_filename:
+        boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
+        body_parts = []
+        fields = {
+            "access_key": access_key,
+            "subject": subject,
+            "from_name": "Stalking-AI Қорғаныс",
+            "contact_info": contact_val,
+            "message": formatted_message,
+        }
+        if contact and "@" in contact:
+            fields["email"] = contact
+            fields["replyto"] = contact
+
+        for field_name, val in fields.items():
+            body_parts.append(
+                f'--{boundary}\r\nContent-Disposition: form-data; name="{field_name}"\r\n\r\n{val}\r\n'.encode(
+                    "utf-8"
+                )
+            )
+
+        mime_type = clean_mime or "image/jpeg"
+        body_parts.append(
+            f'--{boundary}\r\nContent-Disposition: form-data; name="attachment"; filename="{clean_filename}"\r\nContent-Type: {mime_type}\r\n\r\n'.encode(
+                "utf-8"
+            )
+            + clean_attachment
+            + b"\r\n"
+        )
+        body_parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+        payload = b"".join(body_parts)
+        headers = {
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        }
+    else:
+        payload_dict = {
+            "access_key": access_key,
+            "subject": subject,
+            "from_name": "Stalking-AI Қорғаныс",
+            "contact_info": contact_val,
+            "message": formatted_message,
+        }
+        if contact and "@" in contact:
+            payload_dict["email"] = contact
+            payload_dict["replyto"] = contact
+
+        payload = json.dumps(payload_dict).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        }
+
+    req = urllib.request.Request(url, data=payload, headers=headers)
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        res = json.loads(resp.read().decode("utf-8"))
+        if not res.get("success"):
+            raise RuntimeError(res.get("message", "Web3Forms submission failed"))
+        return res
+
+
 @require_http_methods(["GET", "POST"])
 def help_request(request, lang=None):
     from apps.core.i18n import t as tr
 
     lang_code = _lang(request)
     recipient_email = getattr(settings, "HELP_REQUEST_EMAIL", "").strip()
-    is_enabled = bool(recipient_email)
+    web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
+    is_enabled = bool(recipient_email or web3forms_key)
 
     if request.method == "GET":
         return render(
@@ -542,24 +635,38 @@ def help_request(request, lang=None):
 </html>"""
 
     try:
-        reply_to_list = None
-        if contact and "@" in contact:
-            match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", contact)
-            if match:
-                reply_to_list = [match.group(0)]
+        web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
+        if web3forms_key:
+            _send_help_request_via_web3forms(
+                access_key=web3forms_key,
+                subject=subject,
+                message=message,
+                contact=contact,
+                req_id=req_id,
+                req_time=req_time,
+                clean_attachment=clean_attachment,
+                clean_filename=clean_filename,
+                clean_mime=clean_mime,
+            )
+        else:
+            reply_to_list = None
+            if contact and "@" in contact:
+                match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", contact)
+                if match:
+                    reply_to_list = [match.group(0)]
 
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=email_body,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "Stalking-AI <noreply@stalking-ai.org>"),
-            to=[recipient_email],
-            reply_to=reply_to_list,
-        )
-        email.attach_alternative(email_html, "text/html")
-        if clean_attachment and clean_filename and clean_mime:
-            email.attach(clean_filename, clean_attachment, clean_mime)
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=email_body,
+                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "Stalking-AI <noreply@stalking-ai.org>"),
+                to=[recipient_email],
+                reply_to=reply_to_list,
+            )
+            email.attach_alternative(email_html, "text/html")
+            if clean_attachment and clean_filename and clean_mime:
+                email.attach(clean_filename, clean_attachment, clean_mime)
 
-        email.send(fail_silently=False)
+            email.send(fail_silently=False)
 
         recent.append(now)
         request.session["help_requests_sent"] = recent
@@ -572,6 +679,8 @@ def help_request(request, lang=None):
                 active="help_request",
                 is_enabled=True,
                 success=True,
+                req_id=req_id,
+                req_time=req_time,
                 lang_code=lang_code,
             ),
         )

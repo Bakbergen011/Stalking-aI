@@ -40,10 +40,18 @@
     <div class="col-lg-8">
       {% if success %}
         <!-- Сәтті жіберілген күй -->
-        <div class="card border-success text-center py-5 px-4 shadow-sm">
+        <div class="card border-success text-center py-5 px-4 shadow-sm" style="background: var(--surface-2, rgba(16, 185, 129, 0.05)); border: 2px solid #10b981 !important;">
           <div class="card-body">
-            <div class="success-icon mb-3" style="font-size: 3rem;" aria-hidden="true">✅</div>
-            <h2 class="h3 text-success mb-2">{{ t.help_success_title }}</h2>
+            <div class="success-icon mb-3" style="font-size: 3.5rem;" aria-hidden="true">✅</div>
+            <h2 class="h3 text-success mb-2 fw-bold">{{ t.help_success_title }}</h2>
+            <div class="badge bg-success text-white fs-6 px-3 py-2 mb-3 shadow-sm">
+              {% if lang_code == 'kk' %}Өтініш маманға сәтті жеткізілді 🚀{% else %}Обращение успешно доставлено специалисту 🚀{% endif %}
+            </div>
+            {% if req_id %}
+              <div class="text-muted small mb-2">
+                {% if lang_code == 'kk' %}Өтініш коды:{% else %}Код обращения:{% endif %} <strong class="badge bg-dark-subtle text-dark border">#{{ req_id }}</strong>
+              </div>
+            {% endif %}
             <p class="text-muted mb-4 max-w-lg mx-auto">{{ t.help_success_desc }}</p>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
               <a href="/{{ lang }}/help-request/" class="btn btn-primary">{{ t.help_send_another }}</a>
@@ -152,7 +160,7 @@
 
               <!-- Батырмалар -->
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2">
-                <button type="submit" class="btn btn-primary px-4 py-2">
+                <button type="submit" id="submitHelpBtn" class="btn btn-primary px-4 py-2">
                   🔒 {{ t.help_submit_btn }}
                 </button>
                 <a href="/{{ lang }}/cover/" class="btn btn-outline-danger">
@@ -166,4 +174,23 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        var msg = document.getElementById('id_message');
+        if (msg && msg.value.trim().length >= 10) {
+          var btn = document.getElementById('submitHelpBtn');
+          if (btn && !btn.disabled) {
+            btn.disabled = true;
+            btn.innerHTML = '⏳ {% if lang_code == "kk" %}Жіберілуде... Күте тұрыңыз{% else %}Отправка... Пожалуйста, подождите{% endif %}';
+            form.submit();
+          }
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}

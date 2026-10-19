@@ -30,6 +30,8 @@ services:
         sync: false
       - key: HELP_REQUEST_EMAIL
         sync: false
+      - key: WEB3FORMS_ACCESS_KEY
+        sync: false
       - key: EMAIL_BACKEND
         value: "django.core.mail.backends.smtp.EmailBackend"
       - key: EMAIL_HOST

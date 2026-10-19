@@ -182,3 +182,24 @@ class HelpRequestTestCase(TestCase):
 
             # Check that response HTML NEVER exposes the recipient email
             self.assertNotContains(resp, "specialist@example.com")
+
+    def test_help_request_web3forms_dispatch(self):
+        from unittest.mock import patch
+
+        with self.settings(WEB3FORMS_ACCESS_KEY="fake-access-key-123", HELP_REQUEST_EMAIL=""):
+            with patch("apps.core.views._send_help_request_via_web3forms") as mock_web3:
+                mock_web3.return_value = {"success": True}
+                resp = self.client.post(
+                    "/kk/help-request/",
+                    {
+                        "message": "Тест хабарлама Web3Forms арқылы жеткізілуі тиіс.",
+                        "contact": "+7 777 123 45 67",
+                    },
+                )
+                self.assertEqual(resp.status_code, 200)
+                self.assertContains(resp, "Өтініш сәтті жіберілді")
+                self.assertTrue(mock_web3.called)
+                args, kwargs = mock_web3.call_args
+                self.assertEqual(kwargs["access_key"], "fake-access-key-123")
+                self.assertEqual(kwargs["contact"], "+7 777 123 45 67")
+                self.assertIn("Тест хабарлама", kwargs["message"])
