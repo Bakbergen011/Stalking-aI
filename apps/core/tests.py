@@ -203,3 +203,25 @@ class HelpRequestTestCase(TestCase):
                 self.assertEqual(kwargs["access_key"], "fake-access-key-123")
                 self.assertEqual(kwargs["contact"], "+7 777 123 45 67")
                 self.assertIn("Тест хабарлама", kwargs["message"])
+
+    def test_help_request_resend_dispatch(self):
+        from unittest.mock import patch
+
+        with self.settings(RESEND_API_KEY="re_test_key_123", HELP_REQUEST_EMAIL="specialist@example.com"):
+            with patch("apps.core.views._send_help_request_via_resend") as mock_resend:
+                mock_resend.return_value = {"id": "res_123"}
+                resp = self.client.post(
+                    "/kk/help-request/",
+                    {
+                        "message": "Тест хабарлама Resend арқылы жеткізілуі тиіс.",
+                        "contact": "victim@example.com",
+                    },
+                )
+                self.assertEqual(resp.status_code, 200)
+                self.assertContains(resp, "Өтініш сәтті жіберілді")
+                self.assertTrue(mock_resend.called)
+                args, kwargs = mock_resend.call_args
+                self.assertEqual(kwargs["api_key"], "re_test_key_123")
+                self.assertEqual(kwargs["recipient_email"], "specialist@example.com")
+                self.assertEqual(kwargs["reply_to"], ["victim@example.com"])
+                self.assertIn("Тест хабарлама", kwargs["email_body"])

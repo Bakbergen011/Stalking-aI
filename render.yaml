@@ -30,6 +30,10 @@ services:
         sync: false
       - key: HELP_REQUEST_EMAIL
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
       - key: WEB3FORMS_ACCESS_KEY
         sync: false
       - key: EMAIL_BACKEND

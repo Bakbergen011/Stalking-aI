@@ -253,6 +253,65 @@ def cleaner(request, lang=None):
     )
 
 
+def _send_help_request_via_resend(
+    api_key,
+    recipient_email,
+    subject,
+    email_body,
+    email_html,
+    reply_to=None,
+    clean_attachment=None,
+    clean_filename=None,
+    from_email=None,
+):
+    import base64
+    import json
+    import urllib.error
+    import urllib.request
+
+    url = "https://api.resend.com/emails"
+    from_addr = from_email or getattr(
+        settings, "RESEND_FROM_EMAIL", "Stalking-AI <onboarding@resend.dev>"
+    )
+
+    payload = {
+        "from": from_addr,
+        "to": [recipient_email],
+        "subject": subject,
+        "text": email_body,
+        "html": email_html,
+    }
+    if reply_to:
+        payload["reply_to"] = reply_to if isinstance(reply_to, list) else [reply_to]
+
+    if clean_attachment and clean_filename:
+        b64_content = base64.b64encode(clean_attachment).decode("utf-8")
+        payload["attachments"] = [
+            {
+                "filename": clean_filename,
+                "content": b64_content,
+            }
+        ]
+
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "resend-python/2.0.0",
+        },
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        err_text = e.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Resend API қатесі ({e.code}): {err_text}") from e
+
+
 def _send_help_request_via_web3forms(
     access_key,
     subject,
@@ -355,8 +414,9 @@ def help_request(request, lang=None):
 
     lang_code = _lang(request)
     recipient_email = getattr(settings, "HELP_REQUEST_EMAIL", "").strip()
+    resend_key = getattr(settings, "RESEND_API_KEY", "").strip()
     web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
-    is_enabled = bool(recipient_email or web3forms_key)
+    is_enabled = bool(recipient_email or resend_key or web3forms_key)
 
     if request.method == "GET":
         return render(
@@ -639,8 +699,27 @@ def help_request(request, lang=None):
 </html>"""
 
     try:
+        reply_to_list = None
+        if contact and "@" in contact:
+            match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", contact)
+            if match:
+                reply_to_list = [match.group(0)]
+
+        resend_key = getattr(settings, "RESEND_API_KEY", "").strip()
         web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
-        if web3forms_key:
+
+        if resend_key:
+            _send_help_request_via_resend(
+                api_key=resend_key,
+                recipient_email=recipient_email,
+                subject=subject,
+                email_body=email_body,
+                email_html=email_html,
+                reply_to=reply_to_list,
+                clean_attachment=clean_attachment,
+                clean_filename=clean_filename,
+            )
+        elif web3forms_key:
             _send_help_request_via_web3forms(
                 access_key=web3forms_key,
                 subject=subject,
@@ -653,12 +732,6 @@ def help_request(request, lang=None):
                 clean_mime=clean_mime,
             )
         else:
-            reply_to_list = None
-            if contact and "@" in contact:
-                match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", contact)
-                if match:
-                    reply_to_list = [match.group(0)]
-
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=email_body,
