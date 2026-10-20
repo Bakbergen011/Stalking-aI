@@ -102,7 +102,9 @@ def risk(request, lang=None):
 
 @require_GET
 def plan(request, lang=None):
-    return render(request, "core/plan.html", _ctx(request, active="plan"))
+    lang_code = _lang(request)
+    from django.shortcuts import redirect
+    return redirect(f"/{lang_code}/risk/")
 
 
 @require_GET
