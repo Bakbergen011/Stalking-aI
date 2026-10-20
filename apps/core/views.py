@@ -253,6 +253,79 @@ def cleaner(request, lang=None):
     )
 
 
+def _send_help_request_via_telegram(
+    bot_token,
+    chat_id,
+    message,
+    contact,
+    req_id,
+    req_time,
+    clean_attachment=None,
+    clean_filename=None,
+):
+    import json
+    import urllib.parse
+    import urllib.request
+    import uuid
+
+    contact_val = contact if contact else "Толық анонимді (Көрсетілмеген)"
+    text = (
+        f"🚨 <b>Stalking-AI — Жаңа көмек сұрауы #{req_id}</b>\n\n"
+        f"🕒 <b>Уақыты (UTC):</b> {req_time}\n"
+        f"📞 <b>Кері байланыс:</b> {contact_val}\n\n"
+        f"💬 <b>Хабарлама:</b>\n{message}\n\n"
+        f"🔒 <i>Zero-Persistence қауіпсіздігі: бұл деректер серверде сақталмады.</i>"
+    )
+
+    if clean_attachment and clean_filename:
+        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+        boundary = f"----WebKitFormBoundary{uuid.uuid4().hex}"
+        body_parts = [
+            f'--{boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n{chat_id}\r\n'.encode(
+                "utf-8"
+            ),
+            f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n{text[:1024]}\r\n'.encode(
+                "utf-8"
+            ),
+            f'--{boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n'.encode(
+                "utf-8"
+            ),
+            f'--{boundary}\r\nContent-Disposition: form-data; name="photo"; filename="{clean_filename}"\r\nContent-Type: image/jpeg\r\n\r\n'.encode(
+                "utf-8"
+            )
+            + clean_attachment
+            + b"\r\n",
+            f"--{boundary}--\r\n".encode("utf-8"),
+        ]
+        payload = b"".join(body_parts)
+        headers = {
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "User-Agent": "Mozilla/5.0",
+        }
+        req = urllib.request.Request(url, data=payload, headers=headers)
+    else:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = urllib.parse.urlencode(
+            {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": "HTML",
+            }
+        ).encode("utf-8")
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0",
+        }
+        req = urllib.request.Request(url, data=payload, headers=headers)
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        err_text = e.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Telegram API қатесі ({e.code}): {err_text}") from e
+
+
 def _send_help_request_via_resend(
     api_key,
     recipient_email,
@@ -416,7 +489,9 @@ def help_request(request, lang=None):
     recipient_email = getattr(settings, "HELP_REQUEST_EMAIL", "").strip()
     resend_key = getattr(settings, "RESEND_API_KEY", "").strip()
     web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
-    is_enabled = bool(recipient_email or resend_key or web3forms_key)
+    tg_token = getattr(settings, "TELEGRAM_BOT_TOKEN", "").strip()
+    tg_chat = getattr(settings, "TELEGRAM_CHAT_ID", "").strip()
+    is_enabled = bool(recipient_email or resend_key or web3forms_key or (tg_token and tg_chat))
 
     if request.method == "GET":
         return render(
@@ -705,10 +780,29 @@ def help_request(request, lang=None):
             if match:
                 reply_to_list = [match.group(0)]
 
+        tg_token = getattr(settings, "TELEGRAM_BOT_TOKEN", "").strip()
+        tg_chat = getattr(settings, "TELEGRAM_CHAT_ID", "").strip()
         resend_key = getattr(settings, "RESEND_API_KEY", "").strip()
         web3forms_key = getattr(settings, "WEB3FORMS_ACCESS_KEY", "").strip()
 
-        if resend_key:
+        delivered = False
+
+        # 1. Telegram delivery (instant, HTTPS, reliable on Render)
+        if tg_token and tg_chat:
+            _send_help_request_via_telegram(
+                bot_token=tg_token,
+                chat_id=tg_chat,
+                message=message,
+                contact=contact,
+                req_id=req_id,
+                req_time=req_time,
+                clean_attachment=clean_attachment,
+                clean_filename=clean_filename,
+            )
+            delivered = True
+
+        # 2. Email delivery (Resend HTTP API -> Web3Forms HTTP API -> SMTP fallback)
+        if resend_key and recipient_email:
             _send_help_request_via_resend(
                 api_key=resend_key,
                 recipient_email=recipient_email,
@@ -719,6 +813,7 @@ def help_request(request, lang=None):
                 clean_attachment=clean_attachment,
                 clean_filename=clean_filename,
             )
+            delivered = True
         elif web3forms_key:
             _send_help_request_via_web3forms(
                 access_key=web3forms_key,
@@ -731,7 +826,8 @@ def help_request(request, lang=None):
                 clean_filename=clean_filename,
                 clean_mime=clean_mime,
             )
-        else:
+            delivered = True
+        elif not delivered:
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=email_body,
@@ -744,6 +840,7 @@ def help_request(request, lang=None):
                 email.attach(clean_filename, clean_attachment, clean_mime)
 
             email.send(fail_silently=False)
+            delivered = True
 
         recent.append(now)
         request.session["help_requests_sent"] = recent

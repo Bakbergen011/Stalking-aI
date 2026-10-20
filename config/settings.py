@@ -170,6 +170,8 @@ GEMINI_RATE_LIMIT_PER_MINUTE = int(os.getenv("GEMINI_RATE_LIMIT_PER_MINUTE", "8"
 
 # Anonymous Help Request & Email Configuration
 HELP_REQUEST_EMAIL = os.getenv("HELP_REQUEST_EMAIL", "maratkyzyerkenaz9@gmail.com").strip()
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
 RESEND_FROM_EMAIL = os.getenv("RESEND_FROM_EMAIL", "Stalking-AI <onboarding@resend.dev>").strip()
 WEB3FORMS_ACCESS_KEY = os.getenv("WEB3FORMS_ACCESS_KEY", "").strip()

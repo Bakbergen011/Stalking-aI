@@ -144,6 +144,7 @@
       if (out.medical) {
         html += '<a class="call-mini call-medical" href="tel:103"><span class="call-icon">🚑</span> 103 — Жедел жәрдем</a>';
       }
+      html += '<a class="call-mini call-email" href="mailto:maratkyzyerkenaz9@gmail.com"><span class="call-icon">✉️</span> maratkyzyerkenaz9@gmail.com</a>';
       html += '</div></div>';
     }
 
