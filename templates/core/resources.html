@@ -21,6 +21,7 @@
         <button type="button" class="city-btn" data-city="oskemen">Өскемен</button>
         <button type="button" class="city-btn" data-city="pavlodar">Павлодар</button>
         <button type="button" class="city-btn" data-city="taraz">Тараз</button>
+        <button type="button" class="city-btn" data-city="kyzylorda">Қызылорда</button>
       </div>
     </div>
 
@@ -75,6 +76,12 @@
         <span class="pin-ring"></span>
         <span class="pin-dot"></span>
         <span class="pin-name">Тараз</span>
+      </div>
+
+      <div class="kz-city-pin" style="left: 45.2%; top: 70.8%;" data-city="kyzylorda" tabindex="0" role="button" aria-label="Қызылорда">
+        <span class="pin-ring"></span>
+        <span class="pin-dot"></span>
+        <span class="pin-name">Қызылорда</span>
       </div>
 
       <!-- Floating City Details Box -->
@@ -156,6 +163,29 @@
         <p>Қауіпсіз уақытша тұру бөлмелері, заңдық және әлеуметтік қорғау.</p>
         <p><a href="tel:+77262435555" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 +7 (7262) 43-55-55</a></p>
         <p class="meta">📍 Мекенжайы: Тараз қаласы · Тәулік бойы желі</p>
+      </li>
+
+      <li class="resource-card" data-city="kyzylorda">
+        <h2>Қызылорда: «Қамқорлық» дағдарыс орталығы / Кризисный центр «Қамқорлық»</h2>
+        <p>Қиын өмірлік жағдайдағы адамдарға, зорлық-зомбылық құрбандарына арналған арнаулы әлеуметтік қызметтер, уақытша баспана және көмек.</p>
+        <p style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <a href="tel:+77773408734" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 8 777 340 87 34</a>
+          <a href="mailto:zhandos2@mail.ru" class="call-mini" style="background: hsl(210, 45%, 45%);">✉️ zhandos2@mail.ru</a>
+        </p>
+        <p class="meta">📍 Мекенжайы: Қызылорда облысы · Тәулік бойы</p>
+      </li>
+
+      <li class="resource-card" data-city="kyzylorda">
+        <h2>Қызылорда: Кризисный центр «Жан» при ОО «Общество женщин-малых предпринимателей»</h2>
+        <p>Әйелдер мен балаларға психологиялық, құқықтық, әлеуметтік кеңес және көмек көрсету.</p>
+        <p style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+          <a href="tel:+77242271473" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 8 (7242) 27 14 73</a>
+          <a href="tel:+77016644791" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 8 701 664 47 91</a>
+          <a href="tel:+77242262890" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 8 (7242) 26 28 90</a>
+          <a href="tel:+77711313435" class="call-mini" style="background: hsl(157, 45%, 40%);">📞 8 771 131 34 35</a>
+          <a href="mailto:Sima1982@mail.ru" class="call-mini" style="background: hsl(210, 45%, 45%);">✉️ Sima1982@mail.ru</a>
+        </p>
+        <p class="meta">📍 Мекенжайы: Қызылорда қаласы · Сенім телефоны</p>
       </li>
       {% for s in services %}
       <li class="resource-card" data-city="{{ s.region.slug }}">

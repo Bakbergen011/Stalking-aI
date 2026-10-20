@@ -85,6 +85,19 @@
       phone: '+77262435555',
       phoneDisplay: '📞 +7 (7262) 43-55-55'
     },
+    kyzylorda: {
+      name: lang === 'ru' ? 'Кызылорда: «Қамқорлық» және «Жан» дағдарыс орталықтары' : 'Қызылорда: «Қамқорлық» және «Жан» дағдарыс орталықтары',
+      desc: lang === 'ru'
+        ? '1. Кризисный центр «Қамқорлық» · 2. КЦ «Жан» при ОО «Общество женщин-малых предпринимателей». Психологическая, социальная помощь и приют.'
+        : '1. «Қамқорлық» дағдарыс орталығы · 2. «Жан» дағдарыс орталығы. Әйелдер мен балаларға арналған көмек, уақытша баспана және қолдау.',
+      addr: lang === 'ru' ? '📍 Кызылординская область / г. Кызылорда' : '📍 Қызылорда облысы / Қызылорда қаласы',
+      phone: '+77773408734',
+      phoneDisplay: '📞 8 777 340 87 34',
+      extraPhone: '+77016644791',
+      extraDisplay: '📞 8 701 664 47 91',
+      email: 'zhandos2@mail.ru',
+      extraEmail: 'Sima1982@mail.ru'
+    },
     all: {
       name: lang === 'ru' ? 'Экстренная помощь по Казахстану' : 'Қазақстан бойынша жедел көмек',
       desc: lang === 'ru'
@@ -151,6 +164,12 @@
       var actionsHtml = '<a href="tel:' + data.phone + '" class="call-mini" id="infobox-call-btn">' + data.phoneDisplay + '</a>';
       if (data.extraPhone && data.extraDisplay) {
         actionsHtml += ' <a href="tel:' + data.extraPhone + '" class="call-mini" style="background:hsl(157, 45%, 40%);">' + data.extraDisplay + '</a>';
+      }
+      if (data.email) {
+        actionsHtml += ' <a href="mailto:' + data.email + '" class="call-mini" style="background:hsl(210, 45%, 45%);">✉️ ' + data.email + '</a>';
+      }
+      if (data.extraEmail) {
+        actionsHtml += ' <a href="mailto:' + data.extraEmail + '" class="call-mini" style="background:hsl(210, 45%, 45%);">✉️ ' + data.extraEmail + '</a>';
       }
       infoActionsEl.innerHTML = actionsHtml;
     }
