@@ -5,7 +5,10 @@
   data-lang="{{ lang }}"
   data-configured="{{ gemini_configured|yesno:'1,0' }}"
   data-thinking="{{ t.ai_thinking }}"
-  data-remove-file="{{ t.ai_remove_file }}">
+  data-remove-file="{{ t.ai_remove_file }}"
+  data-export-title="{{ t.evidence_export_title }}"
+  data-export-note="{{ t.evidence_export_note }}"
+  data-export-disclaimer="{{ t.evidence_export_disclaimer }}">
 
   <header class="bodyguard-header">
     <div class="feature-tag">
@@ -23,6 +26,9 @@
     </button>
     <button type="button" class="tab-btn" id="tab-sos-btn" role="tab" aria-selected="false" aria-controls="section-sos">
       {{ t.bodyguard_tab_sos }}
+    </button>
+    <button type="button" class="tab-btn" id="tab-evidence-btn" role="tab" aria-selected="false" aria-controls="section-evidence">
+      {{ t.bodyguard_tab_evidence }}
     </button>
   </div>
 
@@ -239,6 +245,44 @@
       </div>
     </div>
   </section>
+
+  <!-- SECTION 3: EVIDENCE COLLECTION & EXPORT -->
+  <section id="section-evidence" class="bodyguard-section" role="tabpanel" aria-labelledby="tab-evidence-btn" hidden>
+    <div class="card intro-card">
+      <h2>{{ t.evidence_title }}</h2>
+      <p class="lead" style="margin-bottom:0.75rem;">{{ t.evidence_intro }}</p>
+      <div class="warn-inline">{{ t.evidence_export_warn }}</div>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <ul class="checklist" id="evidence-list">
+        {% for key in items %}
+        <li class="checklist-item">
+          <input type="checkbox" id="ev-{{ key }}" data-key="{{ key }}">
+          <div style="flex:1">
+            <label for="ev-{{ key }}">
+              {% if key == 'ev_messages' %}{{ t.ev_messages }}
+              {% elif key == 'ev_calls' %}{{ t.ev_calls }}
+              {% elif key == 'ev_dates' %}{{ t.ev_dates }}
+              {% elif key == 'ev_witnesses' %}{{ t.ev_witnesses }}
+              {% elif key == 'ev_medical' %}{{ t.ev_medical }}
+              {% else %}{{ t.ev_originals }}{% endif %}
+            </label>
+            <label class="note-label hint">{{ t.ev_note_label }}
+              <textarea data-note="{{ key }}" rows="2" autocomplete="off"></textarea>
+            </label>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <div class="actions" style="margin-top:1.5rem;">
+        <button type="button" class="btn primary" id="evidence-export">{{ t.evidence_export }}</button>
+        <button type="button" class="btn ghost" id="evidence-clear">{{ t.evidence_clear }}</button>
+      </div>
+    </div>
+  </section>
+
 </article>
 {% endblock %}
 

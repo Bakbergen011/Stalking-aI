@@ -107,19 +107,9 @@ def plan(request, lang=None):
 
 @require_GET
 def evidence(request, lang=None):
-    items = [
-        "ev_messages",
-        "ev_calls",
-        "ev_dates",
-        "ev_witnesses",
-        "ev_medical",
-        "ev_originals",
-    ]
-    return render(
-        request,
-        "core/evidence.html",
-        _ctx(request, active="evidence", items=items),
-    )
+    lang_code = _lang(request)
+    from django.shortcuts import redirect
+    return redirect(f"/{lang_code}/bodyguard/#evidence")
 
 
 @require_GET
@@ -234,8 +224,16 @@ def assistant_page(request, lang=None):
 
 @require_GET
 def bodyguard(request, lang=None):
+    items = [
+        "ev_messages",
+        "ev_calls",
+        "ev_dates",
+        "ev_witnesses",
+        "ev_medical",
+        "ev_originals",
+    ]
     return render(
-        request, "core/bodyguard.html", _ctx(request, active="bodyguard")
+        request, "core/bodyguard.html", _ctx(request, active="bodyguard", items=items)
     )
 
 

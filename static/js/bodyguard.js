@@ -12,33 +12,41 @@
   var lang = root.getAttribute('data-lang') || 'kk';
   var isKk = lang === 'kk';
 
-  // --- TAB SWITCHING ---
+  // --- TAB SWITCHING (Scanner, SOS, Evidence) ---
   var tabScannerBtn = document.getElementById('tab-scanner-btn');
   var tabSosBtn = document.getElementById('tab-sos-btn');
+  var tabEvidenceBtn = document.getElementById('tab-evidence-btn');
   var secScanner = document.getElementById('section-scanner');
   var secSos = document.getElementById('section-sos');
+  var secEvidence = document.getElementById('section-evidence');
+
+  var allTabs = [
+    { key: 'scanner', btn: tabScannerBtn, sec: secScanner },
+    { key: 'sos', btn: tabSosBtn, sec: secSos },
+    { key: 'evidence', btn: tabEvidenceBtn, sec: secEvidence }
+  ];
 
   function switchTab(target) {
-    if (target === 'scanner') {
-      tabScannerBtn.classList.add('is-active');
-      tabScannerBtn.setAttribute('aria-selected', 'true');
-      tabSosBtn.classList.remove('is-active');
-      tabSosBtn.setAttribute('aria-selected', 'false');
-      secScanner.hidden = false;
-      secSos.hidden = true;
-    } else {
-      tabSosBtn.classList.add('is-active');
-      tabSosBtn.setAttribute('aria-selected', 'true');
-      tabScannerBtn.classList.remove('is-active');
-      tabScannerBtn.setAttribute('aria-selected', 'false');
-      secScanner.hidden = true;
-      secSos.hidden = false;
-    }
+    allTabs.forEach(function (tab) {
+      if (!tab.btn || !tab.sec) return;
+      var isActive = tab.key === target;
+      tab.btn.classList.toggle('is-active', isActive);
+      tab.btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      tab.sec.hidden = !isActive;
+    });
   }
 
-  if (tabScannerBtn && tabSosBtn) {
-    tabScannerBtn.addEventListener('click', function () { switchTab('scanner'); });
-    tabSosBtn.addEventListener('click', function () { switchTab('sos'); });
+  allTabs.forEach(function (tab) {
+    if (tab.btn) {
+      tab.btn.addEventListener('click', function () { switchTab(tab.key); });
+    }
+  });
+
+  // Check URL hash if user clicked direct link (e.g. #evidence)
+  if (window.location.hash === '#evidence') {
+    switchTab('evidence');
+  } else if (window.location.hash === '#sos') {
+    switchTab('sos');
   }
 
   // --- CHECKLIST EVALUATION ---
@@ -386,4 +394,55 @@
     });
   }
 
+
+  // --- EVIDENCE CHECKLIST & EXPORT LOGIC ---
+  var exportBtn = document.getElementById('evidence-export');
+  var clearBtn = document.getElementById('evidence-clear');
+
+  function collectEvidence() {
+    var exportTitle = root.getAttribute('data-export-title') || 'Stalking дәлелдер тізімі (жергілікті экспорт)';
+    var exportNote = root.getAttribute('data-export-note') || 'ескертпе:';
+    var exportDisclaimer = root.getAttribute('data-export-disclaimer') || 'Бұл файл тек құрылғыңызда сақталады. Соттың қабылдауына кепілдік жоқ.';
+    var lines = [exportTitle, ''];
+    root.querySelectorAll('#evidence-list > li').forEach(function (li) {
+      var cb = li.querySelector('input[type="checkbox"]');
+      var label = li.querySelector('label[for]');
+      var note = li.querySelector('textarea');
+      var mark = cb && cb.checked ? '[x]' : '[ ]';
+      lines.push(mark + ' ' + (label ? label.textContent.trim() : ''));
+      if (note && note.value.trim()) {
+        lines.push('    ' + exportNote + ' ' + note.value.trim());
+      }
+    });
+    lines.push('');
+    lines.push(exportDisclaimer);
+    return lines.join('\n');
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', function () {
+      var warn = root.querySelector('.warn-inline');
+      if (warn && !window.confirm(warn.textContent.trim())) return;
+      var blob = new Blob([collectEvidence()], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'stalking-evidence-checklist.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      root.querySelectorAll('#evidence-list input[type="checkbox"]').forEach(function (el) {
+        el.checked = false;
+      });
+      root.querySelectorAll('#evidence-list textarea').forEach(function (el) {
+        el.value = '';
+      });
+    });
+  }
 })();
